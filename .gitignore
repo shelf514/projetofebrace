@@ -1,0 +1,40 @@
+# ---- Python / backend ----
+backend/.venv/
+__pycache__/
+*.pyc
+backend/aquasense.db
+backend/.env
+backend/ml/outputs/
+backend/.pytest_cache/
+backend/ml/datasets/demo_mock.csv
+
+# ---- Node / frontend ----
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/android/.gradle/
+frontend/android/build/
+frontend/android/app/build/
+frontend/android/local.properties
+frontend/android/capacitor-cordova-android-plugins/build/
+frontend/.vite/
+
+# ---- PlatformIO / firmware ----
+firmware/esp32/.pio/
+firmware/esp32/include/secrets.h
+
+# ---- Dados ----
+data/raw/*
+data/processed/*
+!data/raw/README.md
+!data/processed/README.md
+
+# ---- Logs ----
+*.log
+
+# ---- IDE / OS ----
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+.DS_Store
