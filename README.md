@@ -6,6 +6,43 @@ O AquaSense AI coleta medições de temperatura, turbidez e TDS com um **ESP32**
 
 > **Aviso científico:** as previsões do modelo são saídas estatísticas e **não constituem certificação sanitária** nem atestam potabilidade da água.
 
+## 🚀 Demo ao vivo (site + APK) — sem instalar nada
+
+Para apresentar o projeto em outra máquina ou no celular, **não é preciso instalar nada**:
+
+1. **Site hospedado:** use a URL pública do dashboard (backend + frontend + WebSocket na mesma origem)
+2. **APK Android:** baixe o APK pronto e instale no smartphone
+   - Abra o repositório → **Releases** → baixe o APK da release `nightly`
+   - (ou rode a action **Build APK Android** no GitHub → baixe o artifact `aquasense-apk`)
+3. O servidor gera **leituras MOCK novas a cada ~40 s** (simulador DEMO ao vivo) — o dashboard se atualiza sozinho via WebSocket, como se o ESP32 estivesse enviando.
+
+Detalhes de deploy (Render + GitHub Actions) em [`docs/demo-supervisor.md`](docs/demo-supervisor.md).
+
+### Deploy do site no Render (1 clique, plano gratuito)
+
+1. Faça push deste repositório para o GitHub.
+2. Em [dashboard.render.com](https://dashboard.render.com) → **New** → **Blueprint** → selecione o repositório.
+3. Clique em **Apply** — o arquivo `render.yaml` configura tudo (build Docker, seed MOCK, simulador ao vivo, health check).
+4. Pronto: URL do tipo `https://aquasense-ai.onrender.com` (o R de graça "dorme" após ~15 min sem acesso e acorda sozinho em ~30 s — abra a URL uns segundos antes de apresentar).
+
+Opções úteis no Render (Dashboard → serviço → Environment):
+
+| Variável                  | Padrão | Função                                             |
+| ------------------------- | ------ | -------------------------------------------------- |
+| `API_KEY`                 | gerada | Chave do ESP32 real e do `POST /api/ml/train`      |
+| `DEMO_SIMULATOR_ENABLED`  | `1`    | `0` desliga o simulador ao vivo                    |
+| `DEMO_SIMULATOR_INTERVAL_SEC` | `40` | Intervalo entre leituras simuladas (MOCK)        |
+
+### APK pronto (build na nuvem via GitHub Actions)
+
+Sem JDK/Android SDK no seu PC — a compilação roda no GitHub:
+
+1. Em **Settings → Secrets and variables → Actions → Variables**, crie `APK_API_URL` com a URL do site hospedado (ex.: `https://aquasense-ai.onrender.com`) — é o backend que o APK usará por padrão.
+2. Em **Actions → Build APK Android → Run workflow**: o APK é compilado e publicado na release `nightly`, com link direto de download.
+3. Instale no celular. O ícone ⚙ dentro do app permite trocar o endereço do backend sem rebuild (ex.: IP local da rede feira para usar o ESP32 real).
+
+> Se você **não usar** o Render, o APK também funciona: instale e informe no ⚙ o endereço do backend rodando em qualquer máquina da rede (`http://<IP_DO_PC>:8000`).
+
 ## Arquitetura
 
 ```
@@ -47,8 +84,11 @@ Sensores (DS18B20, turbidez, TDS)
 │   ├── android/             # projeto Android (Capacitor) para gerar o APK
 │   └── .env.example
 ├── firmware/esp32/          # firmware PlatformIO (C++)
+├── .github/workflows/       # CI: build do APK na nuvem (GitHub Actions)
+├── Dockerfile               # build do site (frontend + backend) para o Render
+├── render.yaml              # deploy em 1 clique (Blueprint do Render)
 ├── data/                    # dados brutos / processados (não versionados)
-├── docs/                    # architecture, hardware, methodology
+├── docs/                    # architecture, hardware, methodology, demo do supervisor
 └── README.md
 ```
 
@@ -78,6 +118,11 @@ cd backend
 ```
 
 Documentação interativa da API: http://localhost:8000/docs
+
+> **Novidade:** se `frontend/dist` existir (faça `npm run build` no frontend), o backend
+> também serve o dashboard em http://localhost:8000 — site, API e WebSocket na mesma URL.
+> No boot, o servidor aplica o seed MOCK automaticamente se o banco estiver vazio e
+> inicia o **simulador DEMO ao vivo** (desative com `DEMO_SIMULATOR_ENABLED=0` no `.env`).
 
 ### Dados demo (MOCK)
 
@@ -138,8 +183,9 @@ O backend deve rodar com `--host 0.0.0.0` para ser acessível na rede local.
 2. `cd firmware/esp32`
 3. Copie `include/secrets.example.h` para `include/secrets.h` e preencha:
    - `WIFI_SSID` / `WIFI_PASSWORD`
-   - `API_URL` (ex.: `http://192.168.0.10:8000/api/readings`)
-   - `API_KEY` (mesmo valor de `API_KEY` no `.env` do backend)
+   - `API_URL` — na rede local: `http://192.168.0.10:8000/api/readings`;
+     no site hospedado: `https://SEU-SITE.onrender.com/api/readings`
+   - `API_KEY` (mesmo valor de `API_KEY` no `.env` do backend ou do Render)
 4. Compile e envie:
 
 ```bash

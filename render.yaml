@@ -1,0 +1,26 @@
+# Render Blueprint - deploy em 1 clique do site AquaSense AI (backend + dashboard).
+# Como usar: https://dashboard.render.com -> "New" -> "Blueprint" -> selecione o repositorio.
+# Plano gratuito: o servico "dorme" apos ~15 min sem acesso e acorda sozinho (~30 s).
+services:
+  - type: web
+    name: aquasense-ai
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      # Chave usada pelo ESP32 real e pelo treino via API. Voce pode definir
+      # seu proprio valor aqui; se deixar como generateValue, consulte em
+      # Render Dashboard -> Environment.
+      - key: API_KEY
+        generateValue: true
+      # Simulador DEMO ao vivo: gera leituras novas periodicas (MOCK) para o
+      # dashboard mostrar dados chegando em tempo real.
+      - key: DEMO_SIMULATOR_ENABLED
+        value: "1"
+      - key: DEMO_SIMULATOR_INTERVAL_SEC
+        value: "40"
+      - key: DEMO_SIMULATOR_ANOMALY_PROB
+        value: "0.02"
+      - key: CORS_ORIGINS
+        value: "*"

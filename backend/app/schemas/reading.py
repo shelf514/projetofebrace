@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 def utc_now() -> datetime:
@@ -11,6 +11,14 @@ def to_utc(value: datetime) -> datetime:
     if value.tzinfo is None:
         return value.replace(tzinfo=timezone.utc)
     return value.astimezone(timezone.utc)
+
+
+def _utc_or_none(value):
+    """Datetimes do SQLite saem 'naive' (UTC); anexa o fuso para o cliente
+    nao interpretar como hora local (deslocamento de horas no dashboard)."""
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    return value
 
 
 class ReadingCreate(BaseModel):
@@ -34,3 +42,8 @@ class ReadingOut(BaseModel):
     prediction_probability: float | None
     anomaly: bool
     created_at: datetime
+
+    @field_validator("timestamp", "created_at", mode="before")
+    @classmethod
+    def _as_utc(cls, value):
+        return _utc_or_none(value)

@@ -1,0 +1,82 @@
+{
+  "version": "1.0.0",
+  "trained_at": "2026-08-10T23:48:02.791650+00:00",
+  "dataset": "demo_mock.csv",
+  "dataset_origin": "MOCK/sintetico - apenas testes",
+  "features": [
+    "temperature",
+    "turbidity",
+    "tds"
+  ],
+  "target": "status",
+  "task": "classification",
+  "model": "RandomForestClassifier",
+  "model_params": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "class_weight": "balanced",
+    "criterion": "gini",
+    "max_depth": null,
+    "max_features": "sqrt",
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 1,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 200,
+    "n_jobs": null,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "n_samples": 1200,
+  "labels": [
+    "boa",
+    "ruim"
+  ],
+  "metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "confusion_matrix": {
+      "labels": [
+        "0",
+        "1"
+      ],
+      "matrix": [
+        [
+          236,
+          0
+        ],
+        [
+          0,
+          4
+        ]
+      ]
+    }
+  },
+  "overfitting": {
+    "train_score": 1.0,
+    "test_score": 1.0,
+    "overfit_gap": 0.0,
+    "warning": false
+  },
+  "feature_importance": [
+    {
+      "feature": "turbidity",
+      "importance": 0.4944
+    },
+    {
+      "feature": "tds",
+      "importance": 0.4667
+    },
+    {
+      "feature": "temperature",
+      "importance": 0.039
+    }
+  ]
+}

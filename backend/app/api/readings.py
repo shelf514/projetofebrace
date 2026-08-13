@@ -6,67 +6,24 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.orm import Session
 
 from app.api.deps import verify_api_key
-from app.api.ws import manager
 from app.database.db import get_db
-from app.models import Device, Reading
+from app.models import Reading
 from app.schemas.reading import ReadingCreate, ReadingOut, to_utc
-from app.services.anomaly import anomaly_detector
-from app.services.ml_service import ml_service
-from app.services.validation import is_hard_violation
+from app.services.reading_service import create_and_broadcast
 
 router = APIRouter(prefix="/api/readings", tags=["readings"])
 
 
-def get_or_create_device(db: Session, device_id: str) -> Device:
-    device = db.get(Device, device_id)
-    if device is None:
-        device = Device(id=device_id, name=device_id, status="unknown")
-        db.add(device)
-        db.flush()
-    return device
-
-
 @router.post("", response_model=ReadingOut, status_code=201, dependencies=[Depends(verify_api_key)])
 async def create_reading(payload: ReadingCreate, db: Session = Depends(get_db)) -> Reading:
-    if is_hard_violation(payload.temperature, payload.turbidity, payload.tds):
-        raise HTTPException(
-            status_code=422,
-            detail="Valores fisicamente absurdos: fora dos limites aceitaveis.",
-        )
-
-    timestamp = payload.timestamp if payload.timestamp is not None else datetime.now(timezone.utc)
-    timestamp = to_utc(timestamp)
-
-    device = get_or_create_device(db, payload.device_id)
-    device.last_seen = timestamp
-    device.status = "online"
-
-    prediction, probability = ml_service.predict(payload.temperature, payload.turbidity, payload.tds)
-    anomaly = anomaly_detector.on_new_reading(
-        db, payload.device_id, payload.temperature, payload.turbidity, payload.tds
+    return await create_and_broadcast(
+        db,
+        payload.device_id,
+        payload.temperature,
+        payload.turbidity,
+        payload.tds,
+        payload.timestamp,
     )
-
-    reading = Reading(
-        device_id=device.id,
-        timestamp=timestamp,
-        temperature=payload.temperature,
-        turbidity=payload.turbidity,
-        tds=payload.tds,
-        prediction=prediction,
-        prediction_probability=probability,
-        anomaly=anomaly,
-    )
-    db.add(reading)
-    db.commit()
-    db.refresh(reading)
-
-    await manager.broadcast(
-        {
-            "type": "reading",
-            "data": ReadingOut.model_validate(reading).model_dump(mode="json"),
-        }
-    )
-    return reading
 
 
 @router.get("", response_model=list[ReadingOut])
