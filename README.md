@@ -94,7 +94,7 @@ Sensores (DS18B20, turbidez, TDS)
 
 ## Instalação
 
-Requisitos: Python 3.11+, Node.js 20+.
+Requisitos: Python 3.11+, Node.js 22+ (o Capacitor CLI exige Node >= 22).
 
 **Automática (Windows):** rode `setup.bat` na raiz — cria o venv, instala dependências,
 gera o dataset MOCK, treina o modelo demo, popula o banco com leituras DEMO e instala o frontend.
