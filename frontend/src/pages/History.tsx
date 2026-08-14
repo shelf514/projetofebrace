@@ -115,7 +115,7 @@ export function History() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
-                <th className="px-4 py-3 font-semibold">Timestamp</th>
+                <th className="px-4 py-3 font-semibold">Data/hora</th>
                 <th className="px-4 py-3 font-semibold">Dispositivo</th>
                 <th className="px-4 py-3 text-right font-semibold">Temperatura (°C)</th>
                 <th className="px-4 py-3 text-right font-semibold">Turbidez (NTU)</th>
@@ -159,6 +159,11 @@ export function History() {
           </table>
         </div>
       )}
+
+      <p className="text-xs text-slate-400">
+        NTU = unidade de turbidez (partículas suspensas) · ppm ≈ mg/L — TDS = sólidos dissolvidos totais
+        (sais e minerais).
+      </p>
 
       <div className="flex items-center justify-between">
         <button

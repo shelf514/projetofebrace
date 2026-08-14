@@ -4,6 +4,7 @@ import { ErrorState, LoadingState } from '../components/States';
 import { StatCard } from '../components/StatCard';
 import { usePolling } from '../hooks/usePolling';
 import { api } from '../services/api';
+import { featureLabel } from '../services/format';
 import type { ConfusionMatrix } from '../types';
 
 export function AIPage() {
@@ -30,6 +31,10 @@ export function AIPage() {
   const metrics = status.metrics ?? {};
   const cm = metrics.confusion_matrix as ConfusionMatrix | undefined;
   const regression = ['mae', 'rmse', 'r2'].filter((k) => k in metrics);
+  const featureImportance = (status.feature_importance ?? []).map((item) => ({
+    ...item,
+    feature: featureLabel(item.feature),
+  }));
 
   return (
     <div className="space-y-6">
@@ -69,8 +74,8 @@ export function AIPage() {
               <dd className="text-xs text-slate-700">{status.dataset_origin ?? '—'}</dd>
             </div>
             <div className="flex justify-between gap-2">
-              <dt className="text-slate-500">Features</dt>
-              <dd className="text-xs text-slate-700">{(status.features ?? []).join(', ')}</dd>
+              <dt className="text-slate-500">Variáveis (features)</dt>
+              <dd className="text-xs text-slate-700">{(status.features ?? []).map(featureLabel).join(', ')}</dd>
             </div>
             <div className="flex justify-between gap-2">
               <dt className="text-slate-500">Rótulos</dt>
@@ -103,16 +108,16 @@ export function AIPage() {
       {status.overfitting && (
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="mb-2 flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-semibold text-slate-700">Verificação de overfitting</h3>
+            <h3 className="text-sm font-semibold text-slate-700">Verificação de sobreajuste (overfitting)</h3>
             {status.overfitting.warning && (
-              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700">ALERTA DE OVERFITTING</span>
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700">ALERTA DE SOBREAJUSTE</span>
             )}
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <StatCard label="Score treino" value={status.overfitting.train_score.toFixed(3)} tone="neutral" />
-            <StatCard label="Score teste" value={status.overfitting.test_score.toFixed(3)} tone="neutral" />
+            <StatCard label="Desempenho em treino" value={status.overfitting.train_score.toFixed(3)} tone="neutral" />
+            <StatCard label="Desempenho em teste" value={status.overfitting.test_score.toFixed(3)} tone="neutral" />
             <StatCard
-              label="Gap (treino − teste)"
+              label="Diferença (treino − teste)"
               value={status.overfitting.overfit_gap.toFixed(3)}
               tone={status.overfitting.warning ? 'warning' : 'ok'}
             />
@@ -130,13 +135,13 @@ export function AIPage() {
 
         {status.feature_importance && status.feature_importance.length > 0 && (
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <h3 className="mb-2 text-sm font-semibold text-slate-700">Importância das features</h3>
+            <h3 className="mb-2 text-sm font-semibold text-slate-700">Importância das variáveis</h3>
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={status.feature_importance} layout="vertical" margin={{ top: 5, right: 20, bottom: 0, left: 20 }}>
+                <BarChart data={featureImportance} layout="vertical" margin={{ top: 5, right: 20, bottom: 0, left: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis type="number" tick={{ fontSize: 11, fill: '#64748b' }} />
-                  <YAxis type="category" dataKey="feature" tick={{ fontSize: 11, fill: '#64748b' }} width={90} />
+                  <YAxis type="category" dataKey="feature" tick={{ fontSize: 11, fill: '#64748b' }} width={120} />
                   <Tooltip formatter={(value) => [Number(value).toFixed(4), 'Importância']} />
                   <Bar dataKey="importance" fill="#0284c7" radius={[0, 4, 4, 0]} isAnimationActive={false} />
                 </BarChart>
@@ -147,9 +152,17 @@ export function AIPage() {
       </div>
 
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
-        <strong>Limitação científica:</strong> este modelo foi treinado sobre {(status.dataset ?? 'um dataset').toUpperCase()}
-        {status.dataset_origin?.toLowerCase().includes('mock') && ' (dados sintéticos, apenas para demonstração)'}. As
-        previsões são saídas estatísticas e não certificam a potabilidade da água.
+        <p>
+          <strong>Limitação científica:</strong> este modelo foi treinado sobre {(status.dataset ?? 'um dataset').toUpperCase()}
+          {status.dataset_origin?.toLowerCase().includes('mock') && ' (dados sintéticos, apenas para demonstração)'}. As
+          previsões são saídas estatísticas e não certificam a potabilidade da água.
+        </p>
+        <p className="mt-2 text-[11px] text-amber-700">
+          Glossário: <strong>Recall</strong> = capacidade de achar os casos verdadeiros · <strong>F1-score</strong> =
+          equilíbrio entre precisão e recall · <strong>MAE/RMSE</strong> = erros médios (regressão) ·{' '}
+          <strong>sobreajuste (overfitting)</strong> = o modelo "decora" o treino e vai mal em dados novos ·{' '}
+          <strong>acurácia</strong> = % de acertos · <strong>precisão</strong> = % dos acertos que eram de fato o alvo.
+        </p>
       </div>
     </div>
   );

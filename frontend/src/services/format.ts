@@ -6,6 +6,16 @@ export const SOFT_BOUNDS = {
   tds: [0, 2000],
 } as const;
 
+export const FEATURE_LABELS: Record<string, string> = {
+  temperature: 'Temperatura',
+  turbidity: 'Turbidez',
+  tds: 'TDS (sólidos dissolvidos)',
+};
+
+export function featureLabel(feature: string): string {
+  return FEATURE_LABELS[feature] ?? feature;
+}
+
 export function sensorStatus(readings: Reading[]): Record<'temperature' | 'turbidity' | 'tds', 'ok' | 'attention' | 'sem_dados'> {
   const latest = readings[0];
   if (!latest) return { temperature: 'sem_dados', turbidity: 'sem_dados', tds: 'sem_dados' };

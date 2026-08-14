@@ -25,9 +25,9 @@ describe('AnomalyBadge', () => {
     expect(screen.getByText('NORMAL')).toBeInTheDocument();
   });
 
-  it('exibe N/A quando nulo', () => {
+  it('exibe SEM INFO quando nulo', () => {
     render(<AnomalyBadge anomaly={null} />);
-    expect(screen.getByText('N/A')).toBeInTheDocument();
+    expect(screen.getByText('SEM INFO')).toBeInTheDocument();
   });
 });
 

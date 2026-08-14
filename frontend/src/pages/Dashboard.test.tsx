@@ -106,9 +106,9 @@ describe('Dashboard', () => {
       () => expect(screen.getByText('Por que essa previsão?')).toBeInTheDocument(),
       { timeout: 2000 },
     );
-    expect(screen.getByText('turbidity')).toBeInTheDocument();
-    expect(screen.getByText('tds')).toBeInTheDocument();
-    expect(screen.getByText('temperature')).toBeInTheDocument();
+    expect(screen.getAllByText('Turbidez').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('TDS (sólidos dissolvidos)').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Temperatura').length).toBeGreaterThan(0);
   });
 
   it('nao mostra selo DEMO para dados reais', async () => {

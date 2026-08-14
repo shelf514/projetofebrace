@@ -7,6 +7,7 @@ interface StatCardProps {
   tone?: 'neutral' | 'ok' | 'warning' | 'critical' | 'primary';
   hint?: string;
   info?: string;
+  sub?: string;
 }
 
 const tones: Record<NonNullable<StatCardProps['tone']>, string> = {
@@ -25,7 +26,7 @@ const valueTones: Record<NonNullable<StatCardProps['tone']>, string> = {
   primary: 'text-sky-800',
 };
 
-export function StatCard({ label, value, unit, tone = 'neutral', hint, info }: StatCardProps) {
+export function StatCard({ label, value, unit, tone = 'neutral', hint, info, sub }: StatCardProps) {
   return (
     <div className={`rounded-xl border p-4 shadow-sm ${tones[tone]}`}>
       <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -43,6 +44,7 @@ export function StatCard({ label, value, unit, tone = 'neutral', hint, info }: S
         {value}
         {unit && <span className="ml-1 text-sm font-medium text-slate-400">{unit}</span>}
       </p>
+      {sub && <p className="mt-1 text-[11px] leading-snug text-slate-400">{sub}</p>}
       {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
     </div>
   );

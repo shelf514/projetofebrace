@@ -8,7 +8,7 @@ import { StatCard } from '../components/StatCard';
 import { usePolling } from '../hooks/usePolling';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { api, formatTimestamp } from '../services/api';
-import { periodRange } from '../services/format';
+import { featureLabel, periodRange } from '../services/format';
 import type { Period, WsReadingMessage } from '../types';
 
 interface Factor {
@@ -75,7 +75,7 @@ export function Dashboard() {
         if (typeof value !== 'number' || !range) return null;
         const deviation = Math.max(-1, Math.min(1, (value - range.ideal) / range.halfRange));
         return {
-          label: item.feature,
+          label: featureLabel(item.feature),
           value,
           score: item.importance * deviation,
           direction: deviation > 0.05 ? 'elevou' : deviation < -0.05 ? 'reduziu' : 'neutro',
@@ -142,7 +142,7 @@ export function Dashboard() {
           title={wsConnected ? 'Recebendo leituras em tempo real (WebSocket)' : 'Sem tempo real: atualização por polling a cada 10 s'}
         >
           <span className={`h-2 w-2 rounded-full ${wsConnected ? 'animate-pulse bg-emerald-500' : 'bg-amber-500'}`} />
-          {wsConnected ? 'AO VIVO' : 'POLLING (10s)'}
+          {wsConnected ? 'AO VIVO' : 'ATUALIZAÇÃO (10s)'}
         </span>
         <div className="text-xs text-slate-500">
           Última leitura:{' '}
@@ -171,6 +171,7 @@ export function Dashboard() {
           value={latest ? latest.turbidity.toFixed(1) : '—'}
           unit="NTU"
           tone={latest && latest.turbidity > 100 ? 'warning' : 'neutral'}
+          sub="Partículas suspensas na água (areia, argila, microrganismos)"
           info="Indica partículas suspensas na água (areia, argila, microrganismos). Sensor óptico: quanto menos luz atravessa, maior a turbidez. Padrão brasileiro para água tratada: até 5 NTU."
         />
         <StatCard
@@ -178,6 +179,7 @@ export function Dashboard() {
           value={latest ? latest.tds.toFixed(0) : '—'}
           unit="ppm"
           tone={latest && latest.tds > 500 ? 'warning' : 'neutral'}
+          sub="Sólidos dissolvidos totais — sais e minerais (ppm ≈ mg/L)"
           info="Sólidos dissolvidos totais: sais e minerais dissolvidos. Medido por condutividade elétrica. Padrão brasileiro: até 1000 mg/L (1 ppm ≈ 1 mg/L)."
         />
         <StatCard
@@ -256,19 +258,19 @@ export function Dashboard() {
           <LoadingState message="Carregando histórico..." />
         ) : (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-            <SensorChart data={series.temperature} color="#0284c7" unit="°C" label="Temperatura × tempo" />
+            <SensorChart data={series.temperature} color="#0284c7" unit="°C" label="Temperatura (°C) × tempo" />
             <SensorChart
               data={series.turbidity}
               color="#d97706"
               unit="NTU"
-              label="Turbidez × tempo"
+              label="Turbidez (NTU) × tempo"
               reference={{ value: 5, label: 'Padrão: 5 NTU' }}
             />
             <SensorChart
               data={series.tds}
               color="#059669"
               unit="ppm"
-              label="TDS × tempo"
+              label="TDS (ppm) × tempo"
               reference={{ value: 1000, label: 'Padrão: 1000 mg/L' }}
             />
           </div>

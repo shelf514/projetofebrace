@@ -12,14 +12,14 @@ export function StatusBadge({ status }: { status: string }) {
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${className}`}>
       <span className={`h-2 w-2 rounded-full ${dot}`} />
-      {normalized === 'online' ? 'ONLINE' : normalized === 'offline' ? 'OFFLINE' : status.toUpperCase()}
+      {normalized === 'online' ? 'ONLINE' : normalized === 'offline' ? 'OFFLINE' : 'DESCONHECIDO'}
     </span>
   );
 }
 
 export function AnomalyBadge({ anomaly }: { anomaly: boolean | null }) {
   if (anomaly === null || anomaly === undefined) {
-    return <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">N/A</span>;
+    return <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">SEM INFO</span>;
   }
   return anomaly ? (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700">
