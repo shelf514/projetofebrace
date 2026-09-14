@@ -1,4 +1,5 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { AquarismoChat } from '../components/AquarismoChat';
 import { ConfusionMatrixView } from '../components/ConfusionMatrix';
 import { ErrorState, LoadingState } from '../components/States';
 import { StatCard } from '../components/StatCard';
@@ -24,6 +25,7 @@ export function AIPage() {
             Treine o modelo executando <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs dark:bg-slate-800 dark:text-slate-200">python -m ml.train</code> no backend, ou use o dataset demo.
           </p>
         </div>
+        <AquarismoChat />
       </div>
     );
   }
@@ -158,6 +160,8 @@ export function AIPage() {
           </div>
         )}
       </div>
+
+      <AquarismoChat />
 
       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800 dark:border-amber-800/30 dark:bg-amber-950/30 dark:text-amber-300">
         <p>

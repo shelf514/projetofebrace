@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import devices, health, ml, predict, readings, ws
+from app.api import chat, devices, health, ml, predict, readings, ws
 from app.config import settings
 from app.database.db import Base, SessionLocal, engine
 from app.services.demo_simulator import demo_simulator
@@ -79,26 +79,34 @@ app.add_middleware(
 )
 
 
-# Rate limit simples em memória para POST /api/readings (protege contra flood do ESP32/fake)
-# 60 req/min é folgado para ESP32 (1/min) mas bloqueia flood; testes usam <60 por suite
+# Rate limit simples em memória para POST /api/readings e /api/chat
 _rate_store: dict[str, list[float]] = defaultdict(list)
-_RATE_LIMIT = 60  # requisições
+_chat_rate_store: dict[str, list[float]] = defaultdict(list)
+_RATE_LIMIT = 60  # requisições /api/readings
 _RATE_WINDOW = 60  # segundos
+_CHAT_RATE_LIMIT = 20  # /api/chat
 
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
+    # /api/readings e /api/chat com limites separados
+    target_store = None
+    limit = None
     if request.url.path == "/api/readings" and request.method == "POST":
+        target_store, limit = _rate_store, _RATE_LIMIT
+    elif request.url.path == "/api/chat" and request.method == "POST":
+        target_store, limit = _chat_rate_store, _CHAT_RATE_LIMIT
+    if target_store is not None:
         ip = request.client.host if request.client else "unknown"
         now = _time.monotonic()
         window_start = now - _RATE_WINDOW
-        _rate_store[ip] = [t for t in _rate_store[ip] if t > window_start]
-        if len(_rate_store[ip]) >= _RATE_LIMIT:
+        target_store[ip] = [t for t in target_store[ip] if t > window_start]
+        if len(target_store[ip]) >= limit:
             resp = JSONResponse(status_code=429, content={"detail": "Muitas requisicoes. Tente novamente em segundos."})
             resp.headers["X-Content-Type-Options"] = "nosniff"
             resp.headers["X-Frame-Options"] = "DENY"
             return resp
-        _rate_store[ip].append(now)
+        target_store[ip].append(now)
     return await call_next(request)
 
 
@@ -128,6 +136,7 @@ app.include_router(devices.router)
 app.include_router(readings.router)
 app.include_router(predict.router)
 app.include_router(ml.router)
+app.include_router(chat.router)
 app.include_router(ws.router)
 
 # Dashboard (build do frontend) servido na mesma origem do backend:

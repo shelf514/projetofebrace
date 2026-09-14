@@ -33,6 +33,11 @@ class Settings:
         self.cors_origins: list[str] = [
             o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()
         ]
+        # LLM opcional (chat aquarismo) — usa OPENAI_API_KEY se presente, senão regras locais
+        self.llm_api_key: str | None = os.getenv("OPENAI_API_KEY") or None
+        self.llm_model: str = os.getenv("LLM_MODEL", "gpt-4o-mini")
+        self.llm_base_url: str = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
+        self.chat_rate_limit: int = int(os.getenv("CHAT_RATE_LIMIT", "20"))
         # Aviso se API_KEY ainda e o placeholder em producao
         if self.api_key == "change-me" and (os.getenv("RENDER") or os.getenv("ENV") == "production"):
             import logging as _logging2

@@ -1,4 +1,4 @@
-import type { Device, Health, MLStatus, Reading, ReadingStats } from '../types';
+import type { ChatRequest, ChatResponse, Device, Health, MLStatus, Reading, ReadingStats } from '../types';
 
 const STORAGE_KEY = 'aquasense.api_url';
 
@@ -86,6 +86,8 @@ export const api = {
     return request<ReadingStats>(`/api/readings/stats${suffix}`);
   },
   mlStatus: () => request<MLStatus>('/api/ml/status'),
+  chat: (payload: ChatRequest) => request<ChatResponse>('/api/chat', { method: 'POST', body: JSON.stringify(payload) }),
+  especies: () => request<{ especies: { especie: string; nome: string }[] }>('/api/chat/especies'),
 };
 
 export function formatTimestamp(iso: string | null | undefined): string {

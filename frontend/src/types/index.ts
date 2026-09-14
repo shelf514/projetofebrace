@@ -82,3 +82,27 @@ export interface WsMessage<T = unknown> {
 export interface WsReadingMessage extends WsMessage<Reading> {
   type: 'reading';
 }
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatRequest {
+  message: string;
+  especie?: string | null;
+  include_sensor_context?: boolean;
+  conversation_id?: string | null;
+  temperature?: number | null;
+  turbidity?: number | null;
+  tds?: number | null;
+}
+
+export interface ChatResponse {
+  reply: string;
+  sources: string[];
+  model_used: string;
+  especie?: string | null;
+}
+
+export type EspecieOption = { especie: string; nome: string };
