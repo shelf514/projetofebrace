@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { getApiBaseUrl } from '../services/api';
 
 export function wsUrl(path: string): string {
-  return getApiBaseUrl().replace(/^http/, 'ws') + path;
+  const base = getApiBaseUrl();
+  if (!base || !/^https?:\/\//.test(base)) return '';
+  return base.replace(/^http/, 'ws') + path;
 }
 
 export interface WsMessage<T = unknown> {
@@ -37,6 +39,10 @@ export function useWebSocket<T>(path: string, enabled = true): WebSocketState<T>
 
   useEffect(() => {
     if (!enabled || typeof WebSocket === 'undefined') return;
+    if (!fullUrl) {
+      setState((prev) => ({ ...prev, error: 'URL do backend invalida' }));
+      return;
+    }
 
     let disposed = false;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
@@ -84,10 +90,20 @@ export function useWebSocket<T>(path: string, enabled = true): WebSocketState<T>
 
     connect();
 
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'aquasense.api_url') {
+        // reconecta com nova URL sem reload
+        socketRef.current?.close();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
     return () => {
       disposed = true;
+      window.removeEventListener('storage', handleStorage);
       if (retryTimer) clearTimeout(retryTimer);
       socketRef.current?.close();
+      socketRef.current = null;
     };
   }, [fullUrl, enabled]);
 

@@ -29,10 +29,14 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [3/6] Criando arquivo .env (configuracao local)...
+echo [3/6] Criando arquivos .env (configuracao local)...
 if not exist .env (
     copy .env.example .env >nul
-    echo     .env criado a partir do exemplo. Revise a API_KEY se quiser.
+    echo     backend\.env criado. TROQUE API_KEY de 'change-me' para valor forte!
+)
+if not exist ..\frontend\.env (
+    copy ..\frontend\.env.example ..\frontend\.env >nul 2>&1
+    if not errorlevel 1 echo     frontend\.env criado.
 )
 
 echo [4/6] Gerando dataset MOCK e treinando o modelo demo...

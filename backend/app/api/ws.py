@@ -29,8 +29,10 @@ class ConnectionManager:
 
     async def broadcast(self, message: dict) -> None:
         """Envia a mensagem para todos os clientes, removendo os que falharem."""
+        async with self._lock:
+            active = list(self._active)
         dead: list[WebSocket] = []
-        for websocket in list(self._active):
+        for websocket in active:
             try:
                 await websocket.send_json(message)
             except Exception:
@@ -50,8 +52,9 @@ async def ws_readings(websocket: WebSocket) -> None:
     await manager.connect(websocket)
     try:
         while True:
-            await websocket.receive()
-    except WebSocketDisconnect:
+            # timeout evita slowloris: cliente idle sera desconectado e reconecta
+            await asyncio.wait_for(websocket.receive(), timeout=60.0)
+    except (WebSocketDisconnect, asyncio.TimeoutError):
         manager.disconnect(websocket)
     except Exception:
         logger.exception("Erro na conexao WebSocket")

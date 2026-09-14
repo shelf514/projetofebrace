@@ -1,4 +1,6 @@
 import asyncio
+import time as _time
+from collections import defaultdict
 from contextlib import asynccontextmanager
 import logging
 import math
@@ -49,6 +51,7 @@ async def lifespan(app: FastAPI):
     simulator_task: asyncio.Task | None = None
     if demo_simulator.enabled:
         simulator_task = asyncio.create_task(demo_simulator.run())
+        demo_simulator.set_task(simulator_task)
 
     yield
 
@@ -76,6 +79,40 @@ app.add_middleware(
 )
 
 
+# Rate limit simples em memória para POST /api/readings (protege contra flood do ESP32/fake)
+# 60 req/min é folgado para ESP32 (1/min) mas bloqueia flood; testes usam <60 por suite
+_rate_store: dict[str, list[float]] = defaultdict(list)
+_RATE_LIMIT = 60  # requisições
+_RATE_WINDOW = 60  # segundos
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    if request.url.path == "/api/readings" and request.method == "POST":
+        ip = request.client.host if request.client else "unknown"
+        now = _time.monotonic()
+        window_start = now - _RATE_WINDOW
+        _rate_store[ip] = [t for t in _rate_store[ip] if t > window_start]
+        if len(_rate_store[ip]) >= _RATE_LIMIT:
+            resp = JSONResponse(status_code=429, content={"detail": "Muitas requisicoes. Tente novamente em segundos."})
+            resp.headers["X-Content-Type-Options"] = "nosniff"
+            resp.headers["X-Frame-Options"] = "DENY"
+            return resp
+        _rate_store[ip].append(now)
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    if request.url.scheme == "https":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
     request: Request, exc: RequestValidationError
@@ -95,6 +132,7 @@ app.include_router(ws.router)
 
 # Dashboard (build do frontend) servido na mesma origem do backend:
 # uma unica URL para o site, a API e o WebSocket.
+# Montagem em "/" com html=True deve vir APOS os routers /api e /ws para nao sombrear 404 JSON.
 if (FRONTEND_DIST / "index.html").exists():
     app.mount(
         "/",

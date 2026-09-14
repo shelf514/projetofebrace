@@ -10,8 +10,8 @@ describe('ComoFunciona', () => {
         <ComoFunciona />
       </MemoryRouter>,
     );
-    expect(screen.getByText('Como o AquaSense funciona')).toBeInTheDocument();
-    expect(screen.getByText('Os sensores')).toBeInTheDocument();
+    expect(screen.getByText('Como funciona')).toBeInTheDocument();
+    expect(screen.getByText('Sensores')).toBeInTheDocument();
     expect(screen.getByText('O caminho de cada leitura')).toBeInTheDocument();
     expect(screen.getByText(/DS18B20/)).toBeInTheDocument();
     expect(screen.getByText(/Isolation Forest/)).toBeInTheDocument();
@@ -24,8 +24,8 @@ describe('ComoFunciona', () => {
         <ComoFunciona />
       </MemoryRouter>,
     );
-    expect(screen.getByText('Limitações (leia antes de usar)')).toBeInTheDocument();
-    expect(screen.getByText(/não substituem análises laboratoriais/i)).toBeInTheDocument();
-    expect(screen.getByText(/calibração periódica/i)).toBeInTheDocument();
+    expect(screen.getByText('Limitações')).toBeInTheDocument();
+    expect(screen.getByText(/não certificam potabilidade/i)).toBeInTheDocument();
+    expect(screen.getByText(/precisam calibração/i)).toBeInTheDocument();
   });
 });

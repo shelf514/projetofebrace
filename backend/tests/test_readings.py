@@ -109,7 +109,9 @@ def test_history_returns_empty_outside_range(client, auth_headers, valid_payload
 
 
 def test_stats_endpoint(client, auth_headers, valid_payload):
-    client.post("/api/readings", json=valid_payload, headers=auth_headers)
+    # usa timestamp recente para cair dentro da janela padrao de 7 dias do /stats
+    recent = {**valid_payload, "timestamp": (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()}
+    client.post("/api/readings", json=recent, headers=auth_headers)
     response = client.get("/api/readings/stats")
     assert response.status_code == 200
     body = response.json()

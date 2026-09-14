@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { ApiSettings } from '../components/ApiSettings';
 import { AnomalyBadge, StatusBadge } from '../components/Badges';
 import { ErrorState, LoadingState } from '../components/States';
 import { PeriodFilter } from '../components/PeriodFilter';
@@ -37,10 +36,15 @@ export function Dashboard() {
   const { lastMessage, connected: wsConnected } = useWebSocket<WsReadingMessage>('/ws/readings');
   const latest = wsConnected && lastMessage?.type === 'reading' ? lastMessage.data : polledLatest;
 
-  const { start, end } = useMemo(
-    () => periodRange(period, customStart ? new Date(customStart) : undefined, customEnd ? new Date(customEnd) : undefined),
-    [period, customStart, customEnd],
-  );
+  const { start, end } = useMemo(() => {
+    const s = customStart ? new Date(customStart) : undefined;
+    const e = customEnd ? new Date(customEnd) : undefined;
+    if (s && e && !isNaN(s.getTime()) && !isNaN(e.getTime()) && s > e) return periodRange('24h');
+    if (s && isNaN(s.getTime())) return periodRange(period, undefined, e);
+    if (e && isNaN(e.getTime())) return periodRange(period, s, undefined);
+    return periodRange(period, s, e);
+  }, [period, customStart, customEnd]);
+
   const { data: history, error: historyError, refresh: refreshHistory } = usePolling(
     () => api.history({ start: start.toISOString(), end: end.toISOString(), limit: 5000 }),
     15000,
@@ -83,9 +87,7 @@ export function Dashboard() {
       })
       .filter((f): f is Factor => f !== null);
     const total = raw.reduce((sum, f) => sum + Math.abs(f.score), 0);
-    return total === 0
-      ? []
-      : raw.map((f) => ({ ...f, score: (f.score / total) * 100 })).sort((a, b) => Math.abs(b.score) - Math.abs(a.score));
+    return total === 0 ? [] : raw.map((f) => ({ ...f, score: (f.score / total) * 100 })).sort((a, b) => Math.abs(b.score) - Math.abs(a.score));
   }, [latest, mlStatus]);
 
   const isDemoDevice = latest?.device_id === 'AQUASENSE-DEMO' || latest?.device_id === 'AQUASENSE-SIM';
@@ -93,144 +95,131 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-xl font-bold text-slate-800">Dashboard</h2>
-            {isDemoDevice && (
-              <span
-                className="rounded-full border border-sky-300 bg-sky-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-700"
-                title="Leituras de exemplo geradas por script — o hardware ESP32 não está conectado"
-              >
-                DEMO — dados simulados
-              </span>
-            )}
-            {isDemoModel && (
-              <span
-                className="rounded-full border border-amber-300 bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700"
-                title="O modelo foi treinado com dataset sintético (MOCK) — resultados apenas para demonstração"
-              >
-                Modelo DEMO (dataset MOCK)
-              </span>
-            )}
+      {/* Hero */}
+      <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-950">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-2xl font-extrabold tracking-tight text-transparent dark:from-white dark:to-slate-300">
+                Dashboard
+              </h2>
+              {isDemoDevice && (
+                <span className="animate-fade-in rounded-full border border-sky-300 bg-sky-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-700 dark:border-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+                  DEMO — dados simulados
+                </span>
+              )}
+              {isDemoModel && (
+                <span className="rounded-full border border-amber-300 bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                  Modelo DEMO
+                </span>
+              )}
+            </div>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Visão em tempo real · Sensores a cada 60s · IA no backend</p>
           </div>
-          <p className="text-sm text-slate-500">Monitoramento em tempo real da qualidade da água</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <ApiSettings />
           <button
             type="button"
             onClick={refreshAll}
-            className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700"
+            className="group inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-lg transition-all hover:bg-slate-800 hover:shadow-xl active:scale-[0.98] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
           >
-            Atualizar agora
+            <span className="transition-transform group-hover:rotate-180 duration-500">↻</span> Atualizar
           </button>
         </div>
       </div>
 
       {error && !latest && <ErrorState message={error} onRetry={refreshAll} />}
 
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Status do dispositivo:</span>
+      {/* Status bar */}
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center gap-2.5">
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Dispositivo</span>
           <StatusBadge status={device?.status ?? 'desconhecido'} />
+          <span className="hidden text-xs text-slate-300 dark:text-slate-600">·</span>
+          <span className="hidden text-xs font-medium text-slate-500 dark:text-slate-400 sm:inline">{device?.id ?? '—'}</span>
         </div>
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-            wsConnected ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-colors ${
+            wsConnected
+              ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20 dark:bg-emerald-900/30 dark:text-emerald-300'
+              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
           }`}
-          title={wsConnected ? 'Recebendo leituras em tempo real (WebSocket)' : 'Sem tempo real: atualização por polling a cada 10 s'}
         >
-          <span className={`h-2 w-2 rounded-full ${wsConnected ? 'animate-pulse bg-emerald-500' : 'bg-amber-500'}`} />
-          {wsConnected ? 'AO VIVO' : 'ATUALIZAÇÃO (10s)'}
+          <span className={`h-2 w-2 rounded-full ${wsConnected ? 'animate-pulse bg-emerald-500 shadow shadow-emerald-500/30' : 'bg-amber-500'}`} />
+          {wsConnected ? 'AO VIVO' : 'POLLING 10s'}
         </span>
-        <div className="text-xs text-slate-500">
-          Última leitura:{' '}
-          <span className="font-semibold text-slate-700">
+        <div className="ml-auto flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <span className="hidden sm:inline">Última leitura</span>
+          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
             {latest ? formatTimestamp(latest.timestamp) : '—'}
           </span>
-          {latest && (
-            <span className="ml-2 inline-flex items-center gap-1 text-slate-400">
-              <span className={`h-2 w-2 rounded-full ${health?.status === 'ok' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-              API: {health?.status === 'ok' ? 'conectada' : 'instável'}
-            </span>
-          )}
+          <span className={`h-2 w-2 rounded-full ${health?.status === 'ok' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Métricas principais */}
+      <div className="animate-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Temperatura"
           value={latest ? latest.temperature.toFixed(1) : '—'}
           unit="°C"
           tone={latest && latest.temperature > 35 ? 'warning' : 'primary'}
-          info="Medida pelo sensor DS18B20 waterproof. Influencia reações químicas e a leitura do TDS. Águas naturais costumam ficar entre 15 e 30 °C."
+          info="DS18B20 waterproof. Águas naturais: 15–30 °C."
         />
         <StatCard
           label="Turbidez"
           value={latest ? latest.turbidity.toFixed(1) : '—'}
           unit="NTU"
           tone={latest && latest.turbidity > 100 ? 'warning' : 'neutral'}
-          sub="Partículas suspensas na água (areia, argila, microrganismos)"
-          info="Indica partículas suspensas na água (areia, argila, microrganismos). Sensor óptico: quanto menos luz atravessa, maior a turbidez. Padrão brasileiro para água tratada: até 5 NTU."
+          sub="Partículas em suspensão"
+          info="Óptico: até 5 NTU para água tratada."
         />
         <StatCard
           label="TDS"
           value={latest ? latest.tds.toFixed(0) : '—'}
           unit="ppm"
           tone={latest && latest.tds > 500 ? 'warning' : 'neutral'}
-          sub="Sólidos dissolvidos totais — sais e minerais (ppm ≈ mg/L)"
-          info="Sólidos dissolvidos totais: sais e minerais dissolvidos. Medido por condutividade elétrica. Padrão brasileiro: até 1000 mg/L (1 ppm ≈ 1 mg/L)."
+          sub="Sólidos dissolvidos (mg/L)"
         />
         <StatCard
           label="Modelo"
           value={latest?.prediction ? latest.prediction : 'Sem modelo'}
           tone={latest?.prediction ? 'ok' : 'neutral'}
-          hint={latest?.prediction_probability != null ? `Confiança: ${(latest.prediction_probability * 100).toFixed(0)}%` : 'Não treinado'}
-          info="O modelo de ML prevê a variável-alvo do dataset de treinamento (ex.: status da água). É uma estimativa estatística, não uma análise de laboratório."
+          hint={latest?.prediction_probability != null ? `${(latest.prediction_probability * 100).toFixed(0)}% confiança` : 'Não treinado'}
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
           label="Anomalia"
           value={<AnomalyBadge anomaly={latest ? latest.anomaly : null} />}
           tone={latest?.anomaly ? 'critical' : 'neutral'}
-          hint="Detecção por Isolation Forest + limites físicos"
-          info="Valores fora do esperado para aquele histórico de medições. Não é erro de medida necessariamente — pode indicar um evento real (contaminação, mudança brusca)."
+          hint="Isolation Forest + limites físicos"
         />
-        <StatCard
-          label="Leituras no período"
-          value={history ? history.length : '—'}
-          tone="neutral"
-          hint={`${start.toLocaleDateString('pt-BR')} – ${end.toLocaleDateString('pt-BR')}`}
-        />
+        <StatCard label="Leituras no período" value={history ? history.length : '—'} hint={`${start.toLocaleDateString('pt-BR')} – ${end.toLocaleDateString('pt-BR')}`} />
         <StatCard
           label="Saúde da API"
           value={health?.status === 'ok' ? 'OK' : 'INDISPONÍVEL'}
           tone={health?.status === 'ok' ? 'ok' : 'critical'}
-          hint={health?.model_loaded ? `Modelo v${health.model_version ?? '?'} carregado` : 'Modelo não treinado'}
+          hint={health?.model_loaded ? `Modelo v${health.model_version ?? '?'} · ${health.uptime_seconds ? `${Math.floor(health.uptime_seconds / 3600)}h` : ''}` : 'Modelo não treinado'}
         />
       </div>
 
       {latest && factors.length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-700">Por que essa previsão?</h3>
-          <p className="mt-0.5 text-xs text-slate-500">
-            Contribuição estimada de cada fator para a última previsão (importância do modelo × desvio do valor em relação ao típico).
-          </p>
-          <div className="mt-3 space-y-2">
+        <div className="animate-fade-in rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Por que essa previsão?</h3>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Importância × desvio do típico</p>
+          <div className="mt-4 space-y-3">
             {factors.map((factor) => (
               <div key={factor.label} className="flex items-center gap-3">
-                <span className="w-24 text-xs font-semibold text-slate-600">{factor.label}</span>
-                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                <span className="w-28 text-xs font-semibold text-slate-600 dark:text-slate-300">{factor.label}</span>
+                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                   <div
-                    className={`h-full rounded-full ${factor.direction === 'neutro' ? 'bg-slate-300' : factor.direction === 'elevou' ? 'bg-amber-500' : 'bg-sky-500'}`}
+                    className={`h-full rounded-full transition-all duration-700 ease-out ${factor.direction === 'neutro' ? 'bg-slate-400 dark:bg-slate-500' : factor.direction === 'elevou' ? 'bg-amber-500' : 'bg-sky-500'}`}
                     style={{ width: `${Math.min(100, Math.abs(factor.score))}%` }}
                   />
                 </div>
-                <span className={`w-28 text-right text-xs ${factor.direction === 'neutro' ? 'text-slate-400' : factor.direction === 'elevou' ? 'text-amber-700' : 'text-sky-700'}`}>
-                  {factor.direction === 'neutro' ? 'neutro' : factor.direction} ({factor.score > 0 ? '+' : ''}{factor.score.toFixed(0)}%)
+                <span className={`w-28 text-right text-xs font-medium ${factor.direction === 'neutro' ? 'text-slate-400' : factor.direction === 'elevou' ? 'text-amber-700 dark:text-amber-300' : 'text-sky-700 dark:text-sky-300'}`}>
+                  {factor.direction} {factor.score > 0 ? '+' : ''}
+                  {factor.score.toFixed(0)}%
                 </span>
               </div>
             ))}
@@ -238,9 +227,10 @@ export function Dashboard() {
         </div>
       )}
 
-      <div>
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600">Gráficos</h3>
+      {/* Gráficos */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">Evolução temporal</h3>
           <PeriodFilter
             period={period}
             onPeriodChange={setPeriod}
@@ -256,30 +246,22 @@ export function Dashboard() {
           <ErrorState message={historyError} onRetry={refreshHistory} />
         ) : !history ? (
           <LoadingState message="Carregando histórico..." />
+        ) : history.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 py-12 text-center dark:border-slate-700 dark:bg-slate-800/50">
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Sem dados no período</p>
+            <p className="mt-1 text-xs text-slate-400">Ajuste o filtro ou aguarde o ESP32 enviar leituras.</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-            <SensorChart data={series.temperature} color="#0284c7" unit="°C" label="Temperatura (°C) × tempo" />
-            <SensorChart
-              data={series.turbidity}
-              color="#d97706"
-              unit="NTU"
-              label="Turbidez (NTU) × tempo"
-              reference={{ value: 5, label: 'Padrão: 5 NTU' }}
-            />
-            <SensorChart
-              data={series.tds}
-              color="#059669"
-              unit="ppm"
-              label="TDS (ppm) × tempo"
-              reference={{ value: 1000, label: 'Padrão: 1000 mg/L' }}
-            />
+            <SensorChart data={series.temperature} color="#0ea5e9" unit="°C" label="Temperatura" />
+            <SensorChart data={series.turbidity} color="#f59e0b" unit="NTU" label="Turbidez" reference={{ value: 5, label: '5 NTU' }} />
+            <SensorChart data={series.tds} color="#10b981" unit="ppm" label="TDS" reference={{ value: 1000, label: '1000 mg/L' }} />
           </div>
         )}
       </div>
 
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
-        <strong>Importante:</strong> os valores previstos pelo modelo são resultados estatísticos e não substituem
-        análises laboratoriais nem certificam a potabilidade da água.
+      <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 text-xs leading-relaxed text-amber-800 dark:border-amber-800/30 dark:from-amber-950/30 dark:to-orange-950/20 dark:text-amber-300">
+        <strong>Aviso científico:</strong> previsões são estatísticas, não certificam potabilidade. Use análises laboratoriais para decisões sanitárias.
       </div>
     </div>
   );

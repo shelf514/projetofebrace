@@ -5,10 +5,13 @@
     "type":  "module",
     "scripts":  {
                     "dev":  "vite",
-                    "build":  "tsc -b \u0026\u0026 vite build",
+                    "build":  "tsc -b && vite build",
                     "lint":  "oxlint",
+                    "typecheck":  "tsc -b --noEmit",
                     "preview":  "vite preview",
-                    "test":  "vitest run"
+                    "test":  "vitest run",
+                    "test:watch":  "vitest",
+                    "test:coverage":  "vitest run --coverage"
                 },
     "dependencies":  {
                          "@capacitor/android":  "^8.5.0",

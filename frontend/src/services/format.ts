@@ -63,11 +63,14 @@ export function exportCsv(readings: Reading[]): void {
       r.anomaly ? 'true' : 'false',
     ].join(','),
   );
-  const blob = new Blob([[header, ...lines].join('\n')], { type: 'text/csv;charset=utf-8' });
+  const csvContent = [header, ...lines].join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
   link.download = `aquasense_history_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

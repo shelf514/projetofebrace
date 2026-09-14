@@ -3,6 +3,7 @@ import csv
 import io
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.api.deps import verify_api_key
@@ -81,8 +82,9 @@ def export_readings_csv(
     start: datetime | None = None,
     end: datetime | None = None,
     device_id: str | None = None,
+    limit: int = Query(default=10000, ge=1, le=50000),
     db: Session = Depends(get_db),
-) -> Response:
+) -> StreamingResponse:
     """Exporta as leituras do periodo em CSV (para treinar o modelo e relatorios)."""
     query = db.query(Reading)
     if start:
@@ -92,28 +94,35 @@ def export_readings_csv(
     if device_id:
         query = query.filter(Reading.device_id == device_id)
 
-    buffer = io.StringIO()
-    writer = csv.writer(buffer)
-    writer.writerow(
-        ["timestamp", "device_id", "temperature", "turbidity", "tds",
-         "prediction", "prediction_probability", "anomaly"]
-    )
-    for reading in query.order_by(Reading.timestamp.asc()).yield_per(500):
+    def generate():
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
         writer.writerow(
-            [
-                reading.timestamp.isoformat(),
-                reading.device_id,
-                reading.temperature,
-                reading.turbidity,
-                reading.tds,
-                reading.prediction or "",
-                "" if reading.prediction_probability is None else reading.prediction_probability,
-                "1" if reading.anomaly else "0",
-            ]
+            ["timestamp", "device_id", "temperature", "turbidity", "tds",
+             "prediction", "prediction_probability", "anomaly"]
         )
+        yield buffer.getvalue()
+        buffer.seek(0)
+        buffer.truncate(0)
+        for reading in query.order_by(Reading.timestamp.asc()).limit(limit).yield_per(500):
+            writer.writerow(
+                [
+                    reading.timestamp.isoformat(),
+                    reading.device_id,
+                    reading.temperature,
+                    reading.turbidity,
+                    reading.tds,
+                    reading.prediction or "",
+                    "" if reading.prediction_probability is None else reading.prediction_probability,
+                    "1" if reading.anomaly else "0",
+                ]
+            )
+            yield buffer.getvalue()
+            buffer.seek(0)
+            buffer.truncate(0)
 
-    return Response(
-        content=buffer.getvalue(),
+    return StreamingResponse(
+        generate(),
         media_type="text/csv; charset=utf-8",
         headers={
             "Content-Disposition": 'attachment; filename="aquasense_readings.csv"'
@@ -128,8 +137,8 @@ def reading_stats(
     device_id: str | None = None,
     db: Session = Depends(get_db),
 ) -> dict:
-    since = start or (datetime.now(timezone.utc) - timedelta(days=7))
-    until = end or datetime.now(timezone.utc)
+    since = to_utc(start) if start else (datetime.now(timezone.utc) - timedelta(days=7))
+    until = to_utc(end) if end else datetime.now(timezone.utc)
     query = db.query(Reading).filter(Reading.timestamp >= since, Reading.timestamp <= until)
     if device_id:
         query = query.filter(Reading.device_id == device_id)

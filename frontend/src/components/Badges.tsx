@@ -1,16 +1,16 @@
 export function StatusBadge({ status }: { status: string }) {
   const normalized = status.toLowerCase();
-  let className = 'bg-slate-100 text-slate-600';
+  let className = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300';
   let dot = 'bg-slate-400';
   if (normalized === 'online') {
-    className = 'bg-emerald-100 text-emerald-700';
-    dot = 'bg-emerald-500';
+    className = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 ring-1 ring-emerald-500/20';
+    dot = 'bg-emerald-500 shadow shadow-emerald-500/40';
   } else if (normalized === 'offline') {
-    className = 'bg-red-100 text-red-700';
-    dot = 'bg-red-500';
+    className = 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 ring-1 ring-red-500/20';
+    dot = 'bg-red-500 shadow shadow-red-500/40';
   }
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${className}`}>
       <span className={`h-2 w-2 rounded-full ${dot}`} />
       {normalized === 'online' ? 'ONLINE' : normalized === 'offline' ? 'OFFLINE' : 'DESCONHECIDO'}
     </span>
@@ -19,24 +19,24 @@ export function StatusBadge({ status }: { status: string }) {
 
 export function AnomalyBadge({ anomaly }: { anomaly: boolean | null }) {
   if (anomaly === null || anomaly === undefined) {
-    return <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">SEM INFO</span>;
+    return <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">SEM INFO</span>;
   }
   return anomaly ? (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700">
-      <span className="h-2 w-2 rounded-full bg-red-500" />
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-300 ring-1 ring-red-500/20">
+      <span className="h-2 w-2 rounded-full bg-red-500 shadow shadow-red-500/40" />
       ANOMALIA
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 ring-1 ring-emerald-500/20">
+      <span className="h-2 w-2 rounded-full bg-emerald-500 shadow shadow-emerald-500/40" />
       NORMAL
     </span>
   );
 }
 
 export function SensorStatusBadge({ status }: { status: 'ok' | 'attention' | 'sem_dados' }) {
-  if (status === 'ok') return <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">OK</span>;
+  if (status === 'ok') return <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 ring-1 ring-emerald-500/20">OK</span>;
   if (status === 'attention')
-    return <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700">ATENÇÃO</span>;
-  return <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">SEM DADOS</span>;
+    return <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 ring-1 ring-amber-500/20">ATENÇÃO</span>;
+  return <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">SEM DADOS</span>;
 }

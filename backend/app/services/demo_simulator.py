@@ -32,10 +32,36 @@ DEFAULT_INTERVAL_SEC = 40.0
 class DemoSimulator:
     def __init__(self) -> None:
         self.enabled = os.getenv("DEMO_SIMULATOR_ENABLED", "1") != "0"
-        self.interval = float(os.getenv("DEMO_SIMULATOR_INTERVAL_SEC", str(DEFAULT_INTERVAL_SEC)))
+        try:
+            self.interval = float(os.getenv("DEMO_SIMULATOR_INTERVAL_SEC", str(DEFAULT_INTERVAL_SEC)))
+        except (ValueError, TypeError):
+            logger.warning("DEMO_SIMULATOR_INTERVAL_SEC invalido, usando %.0f", DEFAULT_INTERVAL_SEC)
+            self.interval = DEFAULT_INTERVAL_SEC
         self.device_id = os.getenv("DEMO_SIMULATOR_DEVICE_ID", DEFAULT_DEVICE_ID)
-        self.anomaly_prob = float(os.getenv("DEMO_SIMULATOR_ANOMALY_PROB", "0.02"))
+        try:
+            self.anomaly_prob = float(os.getenv("DEMO_SIMULATOR_ANOMALY_PROB", "0.02"))
+        except (ValueError, TypeError):
+            self.anomaly_prob = 0.02
         self._rng = np.random.default_rng()
+        self._task: asyncio.Task | None = None
+        self._stopped_by_hardware = False
+
+    def set_task(self, task: asyncio.Task) -> None:
+        self._task = task
+
+    def stop_for_hardware(self, hardware_id: str) -> bool:
+        """Desliga o simulador quando hardware real conecta. Retorna True se desligou agora."""
+        if not self.enabled or self._stopped_by_hardware:
+            return False
+        # Só desliga para o hardware real da feira
+        if hardware_id != "AQUASENSE-001":
+            return False
+        self.enabled = False
+        self._stopped_by_hardware = True
+        logger.info("Hardware detectado (%s) — desligando simulador DEMO", hardware_id)
+        if self._task and not self._task.done():
+            self._task.cancel()
+        return True
 
     def _values(self, now: datetime) -> tuple[float, float, float]:
         phase = now.timestamp() / 3600.0

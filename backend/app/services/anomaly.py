@@ -64,7 +64,14 @@ class AnomalyDetector:
         rows_arr = np.asarray(rows, dtype=float)
         medians = np.median(rows_arr, axis=0)
         mad = np.median(np.abs(rows_arr - medians), axis=0)
-        device_model.baseline = np.stack([medians, 1.4826 * mad + 1e-9])
+        # Evita escala microscopica quando MAD=0 (historico constante) -> falso positivo
+        raw_scale = 1.4826 * mad
+        # floor ~5% da mediana ou 0.5 para turbidez/tds, 0.2 para temperatura
+        floor = np.maximum(np.abs(medians) * 0.05 + 0.1, 0.1)
+        scale = np.maximum(raw_scale, floor)
+        # garante minimo absoluto 1e-6 para evitar divisao por zero
+        scale = np.maximum(scale, 1e-6)
+        device_model.baseline = np.stack([medians, scale])
         device_model.scaler = StandardScaler()
         x = device_model.scaler.fit_transform(rows_arr)
         device_model.model = IsolationForest(
@@ -107,4 +114,13 @@ class AnomalyDetector:
         return self._check(device_model, temperature, turbidity, tds)
 
 
-anomaly_detector = AnomalyDetector()
+def _get_anomaly_detector() -> AnomalyDetector:
+    from app.config import settings as _settings
+    return AnomalyDetector(retrain_every=_settings.anomaly_retrain_every)
+
+# Instancia lazy com valor de settings; recriada se settings mudar em testes
+try:
+    from app.config import settings as _cfg
+    anomaly_detector = AnomalyDetector(retrain_every=_cfg.anomaly_retrain_every)
+except Exception:
+    anomaly_detector = AnomalyDetector()

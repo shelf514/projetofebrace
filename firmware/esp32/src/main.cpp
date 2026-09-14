@@ -228,6 +228,19 @@ void setup() {
   Serial.begin(115200);
   delay(500);
 
+  // Validacao de credenciais placeholder: evita flash sem configurar secrets.h
+  if (String(WIFI_SSID) == "SEU_WIFI_SSID" || String(WIFI_SSID).length() == 0) {
+    Serial.println("ERRO: WIFI_SSID nao configurado em secrets.h - troque SEU_WIFI_SSID");
+    while (true) { setLedState(LED_ERROR); delay(300); }
+  }
+  if (String(API_KEY) == "change-me") {
+    Serial.println("AVISO: API_KEY ainda e 'change-me' - troque em secrets.h e no backend .env");
+  }
+  // HTTPS em API_URL requer WiFiClientSecure
+  if (String(API_URL).startsWith("https://")) {
+    Serial.println("AVISO: API_URL usa https:// - garanta que HTTPClient esta com WiFiClientSecure (setInsecure) se cert falhar");
+  }
+
   pinMode(PIN_LED_STATUS, OUTPUT);
   analogReadResolution(12);
 

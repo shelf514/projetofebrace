@@ -22,5 +22,13 @@ services:
         value: "40"
       - key: DEMO_SIMULATOR_ANOMALY_PROB
         value: "0.02"
+      # Restrito: adicione o dominio real do Render apos o primeiro deploy.
+      # Para feira local com ESP32, o firmware usa IP local (CORS nao se aplica ao ESP32, apenas ao browser).
       - key: CORS_ORIGINS
-        value: "*"
+        value: "https://aquasense-ai.onrender.com,http://localhost:5173,http://localhost:8000"
+      # Para persistencia em producao (evita perda do SQLite efemero), crie um Postgres no Render
+      # e defina DATABASE_URL aqui via 'fromDatabase' (descomente abaixo quando houver DB):
+      # - key: DATABASE_URL
+      #   fromDatabase:
+      #     name: aquasense-db
+      #     property: connectionString

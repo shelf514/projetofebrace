@@ -11,7 +11,12 @@ export function getApiBaseUrl(): string {
 }
 
 export function setApiBaseUrl(url: string): void {
-  localStorage.setItem(STORAGE_KEY, url.trim().replace(/\/+$/, ''));
+  const trimmed = url.trim().replace(/\/+$/, '');
+  // Validacao basica: deve comecar com http:// ou https:// ou ser vazio (same-origin)
+  if (trimmed && !/^https?:\/\/.+/.test(trimmed)) {
+    throw new Error('URL deve começar com http:// ou https://');
+  }
+  localStorage.setItem(STORAGE_KEY, trimmed);
 }
 
 export function getApiKey(): string {
@@ -26,7 +31,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const apiKey = getApiKey();
   if (apiKey) headers['X-API-Key'] = apiKey;
 
-  const response = await fetch(`${getApiBaseUrl()}${path}`, { ...init, headers });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  const response = await fetch(`${getApiBaseUrl()}${path}`, { ...init, headers, signal: controller.signal }).finally(() => clearTimeout(timeout));
 
   if (!response.ok) {
     let detail = `${response.status} ${response.statusText}`;
@@ -50,11 +57,12 @@ export const api = {
   readings: (params: { device_id?: string; limit?: number; offset?: number; anomaly?: boolean; prediction?: string }) => {
     const qs = new URLSearchParams();
     if (params.device_id) qs.set('device_id', params.device_id);
-    if (params.limit) qs.set('limit', String(params.limit));
-    if (params.offset) qs.set('offset', String(params.offset));
+    if (params.limit != null) qs.set('limit', String(params.limit));
+    if (params.offset != null) qs.set('offset', String(params.offset));
     if (params.anomaly !== undefined) qs.set('anomaly', String(params.anomaly));
     if (params.prediction) qs.set('prediction', params.prediction);
-    return request<Reading[]>(`/api/readings?${qs.toString()}`);
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return request<Reading[]>(`/api/readings${suffix}`);
   },
   latestReading: (device_id?: string) => {
     const qs = device_id ? `?device_id=${encodeURIComponent(device_id)}` : '';
@@ -65,15 +73,17 @@ export const api = {
     if (params.start) qs.set('start', params.start);
     if (params.end) qs.set('end', params.end);
     if (params.device_id) qs.set('device_id', params.device_id);
-    if (params.limit) qs.set('limit', String(params.limit));
-    return request<Reading[]>(`/api/readings/history?${qs.toString()}`);
+    if (params.limit != null) qs.set('limit', String(params.limit));
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return request<Reading[]>(`/api/readings/history${suffix}`);
   },
   stats: (params: { start?: string; end?: string; device_id?: string }) => {
     const qs = new URLSearchParams();
     if (params.start) qs.set('start', params.start);
     if (params.end) qs.set('end', params.end);
     if (params.device_id) qs.set('device_id', params.device_id);
-    return request<ReadingStats>(`/api/readings/stats?${qs.toString()}`);
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return request<ReadingStats>(`/api/readings/stats${suffix}`);
   },
   mlStatus: () => request<MLStatus>('/api/ml/status'),
 };

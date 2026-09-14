@@ -66,6 +66,14 @@ def process_reading(
     db.add(reading)
     db.commit()
     db.refresh(reading)
+    # Se hardware real (AQUASENSE-001) enviar, desliga o simulador automaticamente
+    if device_id == "AQUASENSE-001":
+        try:
+            from app.services.demo_simulator import demo_simulator
+
+            demo_simulator.stop_for_hardware(device_id)
+        except Exception:
+            pass  # nunca quebrar ingestão por causa do simulador
     return reading
 
 

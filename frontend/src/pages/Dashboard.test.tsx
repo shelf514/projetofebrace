@@ -95,7 +95,7 @@ describe('Dashboard', () => {
     mockApi();
 
     render(<Dashboard />);
-    await waitFor(() => expect(screen.getByText('Confiança: 91%')).toBeInTheDocument(), { timeout: 2000 });
+    await waitFor(() => expect(screen.getByText(/91% confiança/)).toBeInTheDocument(), { timeout: 2000 });
   });
 
   it('explica os fatores da ultima previsao', async () => {

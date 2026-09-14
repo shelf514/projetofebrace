@@ -34,8 +34,20 @@ def list_datasets() -> dict:
 
 @router.post("/train", dependencies=[Depends(verify_api_key)])
 def train_model(payload: TrainRequest) -> dict:
-    dataset_path = settings.datasets_dir / payload.dataset
-    if not dataset_path.exists():
+    # Protecao contra path traversal: resolve e verifica se esta dentro de datasets_dir
+    try:
+        base = settings.datasets_dir.resolve()
+        dataset_path = (settings.datasets_dir / payload.dataset).resolve()
+        if not dataset_path.is_relative_to(base):
+            raise HTTPException(status_code=400, detail="Dataset invalido")
+        # Apenas extensoes permitidas
+        if dataset_path.suffix.lower() not in {".csv", ".xlsx", ".json"}:
+            raise HTTPException(status_code=400, detail="Extensao de dataset nao suportada")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=400, detail="Dataset invalido")
+    if not dataset_path.exists() or not dataset_path.is_file():
         raise HTTPException(status_code=404, detail="Dataset nao encontrado em ml/datasets/")
     try:
         from ml import train as train_module
@@ -45,7 +57,10 @@ def train_model(payload: TrainRequest) -> dict:
             target=payload.target,
             test_size=payload.test_size,
         )
+    except HTTPException:
+        raise
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"Falha no treinamento: {exc}") from exc
+        # Nao vazar detalhes internos (path, traceback) ao cliente
+        raise HTTPException(status_code=400, detail="Falha no treinamento. Verifique o dataset e tente novamente.") from exc
     ml_service.load()
     return result

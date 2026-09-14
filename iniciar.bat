@@ -9,19 +9,27 @@ echo ============================================
 echo.
 
 REM ---------- 1. Backend (porta 8000) ----------
-netstat -ano | findstr /c:":8000" | findstr /c:"LISTENING" >nul 2>&1
+netstat -ano | findstr /i /c:":8000" | findstr /i /c:"LISTENING" >nul 2>&1
 if %errorlevel%==0 (
   echo [OK] Backend ja esta rodando na porta 8000.
 ) else (
+  if not exist "%~dp0backend\.venv\Scripts\python.exe" (
+    echo [ERRO] backend\.venv nao encontrado. Rode setup.bat primeiro.
+    pause
+    exit /b 1
+  )
   echo [1/3] Iniciando backend FastAPI...
   start "AquaSense Backend" cmd /k "cd /d %~dp0backend && .venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
 )
 
 REM ---------- 2. Frontend (porta 5173) ----------
-netstat -ano | findstr /c:":5173" | findstr /c:"LISTENING" >nul 2>&1
+netstat -ano | findstr /i /c:":5173" | findstr /i /c:"LISTENING" >nul 2>&1
 if %errorlevel%==0 (
   echo [OK] Frontend ja esta rodando na porta 5173.
 ) else (
+  if not exist "%~dp0frontend\node_modules" (
+    echo [AVISO] frontend\node_modules nao encontrado. Rode setup.bat ou npm install.
+  )
   echo [2/3] Iniciando frontend React...
   start "AquaSense Frontend" cmd /k "cd /d %~dp0frontend && npm run dev"
 )

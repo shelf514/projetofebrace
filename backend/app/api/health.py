@@ -1,6 +1,6 @@
 import time
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -13,13 +13,15 @@ _started = time.time()
 
 
 @router.get("")
-def health(db: Session = Depends(get_db)) -> dict:
+def health(response: Response, db: Session = Depends(get_db)) -> dict:
     db_ok = True
     try:
         db.execute(text("SELECT 1"))
     except Exception:
         db_ok = False
     status = ml_service.status() or {}
+    if not db_ok:
+        response.status_code = 503
     return {
         "status": "ok" if db_ok else "degraded",
         "database": "ok" if db_ok else "error",

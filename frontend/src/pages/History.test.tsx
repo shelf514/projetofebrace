@@ -56,7 +56,7 @@ describe('History', () => {
     vi.spyOn(apiModule.api, 'readings').mockResolvedValue([]);
     render(<History />);
     expect(
-      await screen.findByText('Nenhuma leitura encontrada para os filtros atuais.', {}, { timeout: 2000 }),
+      await screen.findByText('Nenhuma leitura com esses filtros', {}, { timeout: 2000 }),
     ).toBeInTheDocument();
   });
 });

@@ -20,15 +20,31 @@ export function usePolling<T>(
       const data = await fetcherRef.current();
       setState({ data, error: null, loading: false });
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
       setState((prev) => ({ ...prev, error: error instanceof Error ? error.message : 'Erro de rede', loading: false }));
     }
   };
 
   useEffect(() => {
     if (!enabled) return;
-    void refresh();
-    const timer = setInterval(() => void refresh(), intervalMs);
-    return () => clearInterval(timer);
+    let mounted = true;
+    const safeRefresh = async () => {
+      try {
+        const data = await fetcherRef.current();
+        if (!mounted) return;
+        setState({ data, error: null, loading: false });
+      } catch (error) {
+        if (!mounted) return;
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setState((prev) => ({ ...prev, error: error instanceof Error ? error.message : 'Erro de rede', loading: false }));
+      }
+    };
+    void safeRefresh();
+    const timer = setInterval(() => void safeRefresh(), intervalMs);
+    return () => {
+      mounted = false;
+      clearInterval(timer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [intervalMs, enabled]);
 
