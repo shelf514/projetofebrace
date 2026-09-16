@@ -4,12 +4,14 @@ from collections import defaultdict
 from contextlib import asynccontextmanager
 import logging
 import math
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -20,11 +22,12 @@ from app.services.demo_simulator import demo_simulator
 from app.services.ml_service import ml_service
 from app.services.seed import seed_demo_if_empty
 
-# Logs INFO dos modulos do app (seed MOCK, simulador, ML) no console.
+# Logs no console (Render captura stdout). Nivel via LOG_LEVEL; data completa
+# para debug fora do Render (antes: so %H:%M:%S, sem data).
 logging.basicConfig(
-    level=logging.INFO,
+    level=getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO),
     format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
-    datefmt="%H:%M:%S",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 FRONTEND_DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
@@ -92,6 +95,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Comprime JSON/CSV grandes (history/export) — ganho gratis no Render free.
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 
 # Rate limit simples em memória para POST /api/readings e /api/chat
