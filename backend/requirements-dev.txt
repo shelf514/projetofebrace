@@ -1,0 +1,3 @@
+# Dependencias de desenvolvimento (testes/lint) — nao instalar no Render/Docker.
+-r requirements.txt
+pytest==9.1.1

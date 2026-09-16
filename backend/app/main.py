@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import chat, devices, health, ml, predict, readings, ws
+from app.api import aquarismo, chat, devices, health, ml, predict, readings, ws
 from app.config import settings
 from app.database.db import Base, SessionLocal, engine
 from app.services.demo_simulator import demo_simulator
@@ -80,11 +80,15 @@ app.add_middleware(
 
 
 # Rate limit simples em memória para POST /api/readings e /api/chat
+# Cap de IPs rastreados (evita crescimento ilimitado do dict — DoS de memoria).
+_MAX_TRACKED_IPS = 2000
 _rate_store: dict[str, list[float]] = defaultdict(list)
 _chat_rate_store: dict[str, list[float]] = defaultdict(list)
+_aquarismo_rate_store: dict[str, list[float]] = defaultdict(list)
 _RATE_LIMIT = 60  # requisições /api/readings
 _RATE_WINDOW = 60  # segundos
-_CHAT_RATE_LIMIT = 20  # /api/chat
+_CHAT_RATE_LIMIT = settings.chat_rate_limit  # /api/chat (configurável via .env)
+_AQUARISMO_RATE_LIMIT = 30  # /api/aquarismo/recomendar
 
 
 @app.middleware("http")
@@ -96,15 +100,22 @@ async def rate_limit_middleware(request: Request, call_next):
         target_store, limit = _rate_store, _RATE_LIMIT
     elif request.url.path == "/api/chat" and request.method == "POST":
         target_store, limit = _chat_rate_store, _CHAT_RATE_LIMIT
+    elif request.url.path == "/api/aquarismo/recomendar" and request.method == "POST":
+        target_store, limit = _aquarismo_rate_store, _AQUARISMO_RATE_LIMIT
     if target_store is not None:
         ip = request.client.host if request.client else "unknown"
         now = _time.monotonic()
         window_start = now - _RATE_WINDOW
         target_store[ip] = [t for t in target_store[ip] if t > window_start]
+        # Eviccao: se muitos IPs distintos, descarta o mais antigo (cap DoS)
+        if ip not in target_store and len(target_store) >= _MAX_TRACKED_IPS:
+            oldest = next(iter(target_store))
+            target_store.pop(oldest, None)
         if len(target_store[ip]) >= limit:
             resp = JSONResponse(status_code=429, content={"detail": "Muitas requisicoes. Tente novamente em segundos."})
             resp.headers["X-Content-Type-Options"] = "nosniff"
             resp.headers["X-Frame-Options"] = "DENY"
+            resp.headers["Retry-After"] = str(_RATE_WINDOW)
             return resp
         target_store[ip].append(now)
     return await call_next(request)
@@ -137,6 +148,7 @@ app.include_router(readings.router)
 app.include_router(predict.router)
 app.include_router(ml.router)
 app.include_router(chat.router)
+app.include_router(aquarismo.router)
 app.include_router(ws.router)
 
 # Dashboard (build do frontend) servido na mesma origem do backend:

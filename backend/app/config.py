@@ -11,6 +11,11 @@ class Settings:
     def __init__(self) -> None:
         raw_db = os.getenv("DATABASE_URL")
         if raw_db:
+            # Render/Heroku entregam postgres:// (deprecado no SQLAlchemy) — normaliza
+            if raw_db.startswith("postgres://"):
+                raw_db = "postgresql+psycopg://" + raw_db[len("postgres://"):]
+            elif raw_db.startswith("postgresql://"):
+                raw_db = "postgresql+psycopg://" + raw_db[len("postgresql://"):]
             self.database_url: str = raw_db
         else:
             # as_posix() evita backslashes no Windows (sqlite:///D:\...)
@@ -37,12 +42,37 @@ class Settings:
         self.llm_api_key: str | None = os.getenv("OPENAI_API_KEY") or None
         self.llm_model: str = os.getenv("LLM_MODEL", "gpt-4o-mini")
         self.llm_base_url: str = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
-        self.chat_rate_limit: int = int(os.getenv("CHAT_RATE_LIMIT", "20"))
-        # Aviso se API_KEY ainda e o placeholder em producao
-        if self.api_key == "change-me" and (os.getenv("RENDER") or os.getenv("ENV") == "production"):
+        try:
+            self.chat_rate_limit: int = int(os.getenv("CHAT_RATE_LIMIT", "20"))
+        except ValueError:
+            import logging as _logging3
+            _logging3.getLogger("aquasense.config").warning(
+                "CHAT_RATE_LIMIT invalido (%r), usando 20", os.getenv("CHAT_RATE_LIMIT")
+            )
+            self.chat_rate_limit = 20
+        if self.chat_rate_limit <= 0:
+            import logging as _logging4
+            _logging4.getLogger("aquasense.config").warning(
+                "CHAT_RATE_LIMIT<=0 (%r), usando 20", self.chat_rate_limit
+            )
+            self.chat_rate_limit = 20
+        if self.anomaly_retrain_every <= 0:
+            import logging as _logging5
+            _logging5.getLogger("aquasense.config").warning(
+                "ANOMALY_RETRAIN_EVERY<=0 (%r), usando 100", self.anomaly_retrain_every
+            )
+            self.anomaly_retrain_every = 100
+        # Fail-fast: placeholder em producao nao pode passar silencioso
+        if self.api_key in ("", "change-me") and (os.getenv("RENDER") or os.getenv("ENV") == "production"):
+            raise RuntimeError(
+                "API_KEY ainda e placeholder em ambiente de producao! "
+                "Defina uma chave forte (openssl rand -hex 32)."
+            )
+        # Aviso se API_KEY ainda e o placeholder em desenvolvimento
+        if self.api_key == "change-me" and not (os.getenv("RENDER") or os.getenv("ENV") == "production"):
             import logging as _logging2
             _logging2.getLogger("aquasense.config").warning(
-                "API_KEY ainda e 'change-me' em ambiente de producao! Defina uma chave forte."
+                "API_KEY ainda e 'change-me' (desenvolvimento). Troque antes da feira."
             )
 
 

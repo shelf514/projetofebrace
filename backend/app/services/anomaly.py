@@ -33,10 +33,11 @@ class AnomalyDetector:
     contaminacao extremo.
     """
 
-    def __init__(self, retrain_every: int = 100, min_samples: int = 20, z_threshold: float = 5.0) -> None:
+    def __init__(self, retrain_every: int = 100, min_samples: int = 20, z_threshold: float = 5.0, max_devices: int = 200) -> None:
         self.retrain_every = retrain_every
         self.min_samples = min_samples
         self.z_threshold = z_threshold
+        self.max_devices = max_devices
         self._models: dict[str, _DeviceModel] = {}
 
     def _history(self, db, device_id: str, n: int = 1000):
@@ -105,6 +106,10 @@ class AnomalyDetector:
     def on_new_reading(self, db, device_id: str, temperature: float, turbidity: float, tds: float) -> bool:
         device_model = self._models.get(device_id)
         if device_model is None:
+            # Cap anti-DoS: N device_ids distintos nao podem crescer sem limite
+            if len(self._models) >= self.max_devices:
+                oldest = next(iter(self._models))
+                self._models.pop(oldest, None)
             device_model = _DeviceModel()
             self._models[device_id] = device_model
         device_model.since_last_train += 1

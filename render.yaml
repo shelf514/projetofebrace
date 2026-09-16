@@ -16,6 +16,7 @@ services:
         generateValue: true
       # Simulador DEMO ao vivo: gera leituras novas periodicas (MOCK) para o
       # dashboard mostrar dados chegando em tempo real.
+      # DEMO (MOCK): 1 para apresentacao sem ESP32, 0 em producao com dado real/ESP32.
       - key: DEMO_SIMULATOR_ENABLED
         value: "1"
       - key: DEMO_SIMULATOR_INTERVAL_SEC
@@ -26,9 +27,18 @@ services:
       # Para feira local com ESP32, o firmware usa IP local (CORS nao se aplica ao ESP32, apenas ao browser).
       - key: CORS_ORIGINS
         value: "https://aquasense-ai.onrender.com,http://localhost:5173,http://localhost:8000"
-      # Para persistencia em producao (evita perda do SQLite efemero), crie um Postgres no Render
-      # e defina DATABASE_URL aqui via 'fromDatabase' (descomente abaixo quando houver DB):
-      # - key: DATABASE_URL
-      #   fromDatabase:
-      #     name: aquasense-db
-      #     property: connectionString
+      - key: ENV
+        value: "production"
+      # Persistencia: SQLite no plano free e efemero (perde dados a cada restart/sleep).
+      # DATABASE_URL injeta a connectionString do Postgres abaixo (psycopg). Para dado
+      # cientifico real, mantenha; para demo MOCK pura, pode remover o bloco databases.
+      # Com dado real, ajuste DEMO_SIMULATOR_ENABLED=0 no Dashboard do Render.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: aquasense-db
+          property: connectionString
+databases:
+  - name: aquasense-db
+    plan: free
+    databaseName: aquasense
+    user: aquasense
