@@ -33,12 +33,16 @@ export function useWebSocket<T>(path: string, enabled = true): WebSocketState<T>
   });
   const socketRef = useRef<WebSocket | null>(null);
   const retryMsRef = useRef(1000);
+  const pathRef = useRef(path);
+  pathRef.current = path;
   const enabledRef = useRef(enabled);
   enabledRef.current = enabled;
-  const fullUrl = wsUrl(path);
+  // fullUrl recalculado a cada (re)conexao via getApiBaseUrl() atual — sem closure stale.
+  const [urlTick, setUrlTick] = useState(0);
 
   useEffect(() => {
-    if (!enabled || typeof WebSocket === 'undefined') return;
+    if (!enabled || typeof WebSocket === 'undefined' || typeof window === 'undefined') return;
+    const fullUrl = wsUrl(pathRef.current);
     if (!fullUrl) {
       setState((prev) => ({ ...prev, error: 'URL do backend invalida' }));
       return;
@@ -92,20 +96,43 @@ export function useWebSocket<T>(path: string, enabled = true): WebSocketState<T>
 
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'aquasense.api_url') {
-        // reconecta com nova URL sem reload
+        // reconecta lendo getApiBaseUrl() atual (sem reload, sem URL stale)
+        retryMsRef.current = 1000;
         socketRef.current?.close();
+        setUrlTick((t) => t + 1);
+      }
+    };
+    const handleOnline = () => {
+      retryMsRef.current = 1000;
+      if (!socketRef.current || socketRef.current.readyState === WebSocket.CLOSED) {
+        setUrlTick((t) => t + 1);
       }
     };
     window.addEventListener('storage', handleStorage);
+    window.addEventListener('online', handleOnline);
+
+    // Heartbeat: fecha socket morto para forcar reconnect via onclose
+    const heartbeat = setInterval(() => {
+      const s = socketRef.current;
+      if (s && s.readyState === WebSocket.OPEN) {
+        try {
+          s.send(JSON.stringify({ type: 'ping' }));
+        } catch {
+          /* onclose cuidara do reconnect */
+        }
+      }
+    }, 30000);
 
     return () => {
       disposed = true;
       window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('online', handleOnline);
+      clearInterval(heartbeat);
       if (retryTimer) clearTimeout(retryTimer);
       socketRef.current?.close();
       socketRef.current = null;
     };
-  }, [fullUrl, enabled]);
+  }, [path, enabled, urlTick]);
 
   return state;
 }

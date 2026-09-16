@@ -1,11 +1,13 @@
+import { Suspense, lazy } from 'react';
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Layout } from './components/Layout';
-import { AIPage } from './pages/AIPage';
-import { ComoFunciona } from './pages/ComoFunciona';
-import { Dashboard } from './pages/Dashboard';
-import { DevicePage } from './pages/DevicePage';
-import { History } from './pages/History';
+
+const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
+const History = lazy(() => import('./pages/History').then((m) => ({ default: m.History })));
+const DevicePage = lazy(() => import('./pages/DevicePage').then((m) => ({ default: m.DevicePage })));
+const AIPage = lazy(() => import('./pages/AIPage').then((m) => ({ default: m.AIPage })));
+const ComoFunciona = lazy(() => import('./pages/ComoFunciona').then((m) => ({ default: m.ComoFunciona })));
 
 function NotFound() {
   return (
@@ -23,16 +25,29 @@ export default function App() {
   return (
     <ErrorBoundary>
       <HashRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="historico" element={<History />} />
-            <Route path="dispositivo" element={<DevicePage />} />
-            <Route path="ia" element={<AIPage />} />
-            <Route path="como-funciona" element={<ComoFunciona />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
+        <Suspense
+          fallback={
+            <div className="mx-auto max-w-5xl space-y-4 p-6" aria-busy="true" aria-live="polite">
+              <div className="h-8 w-48 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800/60" />
+                ))}
+              </div>
+            </div>
+          }
+        >
+          <Routes>
+            <Route element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="historico" element={<History />} />
+              <Route path="dispositivo" element={<DevicePage />} />
+              <Route path="ia" element={<AIPage />} />
+              <Route path="como-funciona" element={<ComoFunciona />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </HashRouter>
     </ErrorBoundary>
   );

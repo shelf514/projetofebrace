@@ -28,12 +28,18 @@ export function Dashboard() {
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
 
+  const { lastMessage, connected: wsConnected } = useWebSocket<WsReadingMessage>('/ws/readings');
+
   const { data: health, error: healthError, refresh: refreshHealth } = usePolling(() => api.health(), 10000);
-  const { data: polledLatest, error: latestError, refresh: refreshLatest } = usePolling(() => api.latestReading(), 10000);
+  // Nao faz poll do latest com WS vivo (economiza 1 req/10s); volta ao polling se WS cair
+  const { data: polledLatest, error: latestError, refresh: refreshLatest } = usePolling(
+    () => api.latestReading(),
+    10000,
+    !wsConnected,
+  );
   const { data: devices, error: devicesError, refresh: refreshDevices } = usePolling(() => api.devices(), 30000);
   const { data: mlStatus } = usePolling(() => api.mlStatus(), 30000);
 
-  const { lastMessage, connected: wsConnected } = useWebSocket<WsReadingMessage>('/ws/readings');
   const latest = wsConnected && lastMessage?.type === 'reading' ? lastMessage.data : polledLatest;
 
   const { start, end } = useMemo(() => {
@@ -46,7 +52,7 @@ export function Dashboard() {
   }, [period, customStart, customEnd]);
 
   const { data: history, error: historyError, refresh: refreshHistory } = usePolling(
-    () => api.history({ start: start.toISOString(), end: end.toISOString(), limit: 5000 }),
+    () => api.history({ start: start.toISOString(), end: end.toISOString(), limit: 2000 }),
     15000,
   );
 

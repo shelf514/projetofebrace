@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { useTheme } from './ThemeProvider';
 
 interface SensorChartProps {
   data: { timestamp: string; value: number }[];
@@ -16,6 +17,17 @@ interface SensorChartProps {
   unit: string;
   label: string;
   reference?: { value: number; label: string };
+}
+
+const MAX_POINTS = 300;
+
+/** Downsample uniforme: 5000pts -> 300 (evita ~15k nos SVG e jank a cada poll). */
+export function downsample<T>(rows: T[], max = MAX_POINTS): T[] {
+  if (rows.length <= max) return rows;
+  const step = rows.length / max;
+  const out: T[] = [];
+  for (let i = 0; i < max; i++) out.push(rows[Math.floor(i * step)]);
+  return out;
 }
 
 export function SensorChart({ data, color, unit, label, reference }: SensorChartProps) {
@@ -28,8 +40,12 @@ export function SensorChart({ data, color, unit, label, reference }: SensorChart
     (value: unknown) => [`${Number(value).toFixed(2)} ${unit}`, label] as [string, string],
     [unit, label],
   );
-  const sortedData = useMemo(() => data, [data]);
-  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+  const sortedData = useMemo(() => {
+    const sorted = [...data].sort((a, b) => +new Date(a.timestamp) - +new Date(b.timestamp));
+    return downsample(sorted);
+  }, [data]);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
     <div className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
@@ -86,9 +102,7 @@ export function SensorChart({ data, color, unit, label, reference }: SensorChart
               stroke={color}
               strokeWidth={2.5}
               dot={false}
-              isAnimationActive={true}
-              animationDuration={700}
-              animationEasing="ease-out"
+              isAnimationActive={false}
             />
           </LineChart>
         </ResponsiveContainer>
