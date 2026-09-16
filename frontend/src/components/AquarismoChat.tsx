@@ -8,24 +8,72 @@ const ESPECIES = [
 
 const SUGESTOES = [
   'pH ideal para betta?',
-  'Meu TDS 800 está alto para neon?',
-  'Temperatura ideal para kingui',
-  'Trocas parciais: quanto e quando?',
+  'TDS 800 está alto para neon?',
+  'posso colocar betta com coridora em 60L?',
+  'volume mínimo para oscar?',
+  'dieta do acaradisco',
+  'GH ideal para guppy?',
 ];
+
+function sanitize(text: string): string {
+  // Remove markdown residual e normaliza bullets (backend já sanitiza, mas garante no frontend)
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/`+/g, '')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^\s*[\*\-]\s+/gm, '• ');
+}
+
+function renderContent(text: string) {
+  const clean = sanitize(text);
+  // Separa por linha dupla = parágrafos distintos
+  const blocks = clean.split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
+  if (blocks.length <= 1) {
+    // Renderiza quebras simples como linhas
+    return <span className="whitespace-pre-line">{clean}</span>;
+  }
+  return (
+    <div className="space-y-2">
+      {blocks.map((b, i) => {
+        // Bloco que começa com • = lista
+        if (b.startsWith('•')) {
+          const items = b.split('\n').map((l) => l.replace(/^•\s*/, '').trim()).filter(Boolean);
+          return (
+            <ul key={i} className="list-disc pl-4 space-y-1">
+              {items.map((it, j) => <li key={j}>{it}</li>)}
+            </ul>
+          );
+        }
+        // Diagnóstico = destaca
+        if (b.startsWith('Diagnóstico')) {
+          return <div key={i} className="rounded-lg bg-amber-50 px-2.5 py-2 text-[13px] text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/20 dark:text-amber-300 dark:ring-amber-800/30">{b}</div>;
+        }
+        return <p key={i} className="leading-relaxed">{b}</p>;
+      })}
+    </div>
+  );
+}
 
 export function AquarismoChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: 'Olá! Sou o assistente de aquarismo do AquaSense 🐠\n\nPergunte sobre pH, temperatura, TDS, turbidez ou GH para qualquer espécie. Ex.: "pH ideal para betta?" ou ative "usar leitura atual" e pergunte "está bom para neon?".\n\n*Respostas são estimativas — não substituem veterinário.*' }
+    { role: 'assistant', content: 'Olá! Sou o assistente de aquarismo do AquaSense 🐠\n\nPergunte sobre pH, temperatura, TDS, turbidez, GH, volume ou compatibilidade por espécie. Ex.: "pH ideal para betta?" ou "posso colocar betta com coridora em 60L?". Ative "usar leitura atual" para diagnóstico automático.\n\nRespostas são estimativas — não substituem veterinário.' }
   ]);
   const [input, setInput] = useState('');
   const [especie, setEspecie] = useState('');
   const [useSensor, setUseSensor] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [convId, setConvId] = useState<string>(() => localStorage.getItem('aquasense.conv_id') || '');
+  const [lastMeta, setLastMeta] = useState<{ sources: string[]; model_used: string } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, loading]);
+
+  useEffect(() => {
+    if (convId) localStorage.setItem('aquasense.conv_id', convId);
+  }, [convId]);
 
   const send = async (text: string = input) => {
     const msg = text.trim();
@@ -38,20 +86,43 @@ export function AquarismoChat() {
         message: msg,
         especie: especie || null,
         include_sensor_context: useSensor,
+        conversation_id: convId || null,
       });
-      setMessages((m) => [...m, { role: 'assistant', content: res.reply }]);
+      if (res.conversation_id && res.conversation_id !== convId) setConvId(res.conversation_id);
+      setMessages((m) => [...m, { role: 'assistant', content: res.reply, sources: res.sources, model_used: res.model_used }]);
+      setLastMeta({ sources: res.sources, model_used: res.model_used });
     } catch (e) {
-      setMessages((m) => [...m, { role: 'assistant', content: e instanceof Error ? e.message : 'Erro ao consultar. Tente novamente.' }]);
+      const err = e instanceof Error ? e.message : 'Erro ao consultar. Tente novamente.';
+      const isRate = err.includes('429') || err.toLowerCase().includes('muitas requisi');
+      setMessages((m) => [...m, { role: 'assistant', content: isRate ? '⚠️ Limite 20 msg/min atingido. Aguarde alguns segundos.' : err }]);
     } finally {
       setLoading(false);
     }
   };
 
+  const clear = async () => {
+    if (convId) {
+      try { await api.chatHistoryDelete(convId); } catch { /* ignore */ }
+    }
+    setConvId('');
+    localStorage.removeItem('aquasense.conv_id');
+    setMessages([{ role: 'assistant', content: 'Conversa limpa. Como posso ajudar com seu aquário? 🐠' }]);
+    setLastMeta(null);
+  };
+
+  const copyLast = async () => {
+    const last = [...messages].reverse().find((m) => m.role === 'assistant');
+    if (last) await navigator.clipboard.writeText(sanitize(last.content));
+  };
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">💬 Chat aquarismo — pH, temp, TDS por espécie</h3>
-        <span className="rounded-full bg-sky-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">Offline-first · regras locais</span>
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">💬 Chat aquarismo — pH, temp, TDS, GH, volume e compatibilidade</h3>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-sky-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">Offline-first · regras locais</span>
+          {lastMeta && <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${lastMeta.model_used === 'openai' ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>{lastMeta.model_used}</span>}
+        </div>
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -67,14 +138,21 @@ export function AquarismoChat() {
           <input type="checkbox" checked={useSensor} onChange={(e) => setUseSensor(e.target.checked)} className="h-3.5 w-3.5 rounded" />
           usar leitura atual
         </label>
-        <span className="text-xs text-slate-400 dark:text-slate-500">15 espécies na base</span>
+        <button onClick={clear} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">🗑 Limpar</button>
+        <button onClick={copyLast} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">⎘ Copiar</button>
+        <span className="text-xs text-slate-400 dark:text-slate-500">15 espécies · TTL 30min</span>
       </div>
 
-      <div ref={listRef} className="flex max-h-[380px] min-h-[220px] flex-col gap-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+      <div ref={listRef} className="flex max-h-[420px] min-h-[240px] flex-col gap-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${m.role === 'user' ? 'bg-sky-600 text-white dark:bg-sky-500' : 'bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700'}`}>
-              {m.content}
+            <div className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${m.role === 'user' ? 'bg-sky-600 text-white dark:bg-sky-500' : 'bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700'}`}>
+              <div>{renderContent(m.content)}</div>
+              {m.sources && m.sources.length > 0 && (
+                <div className="mt-2 border-t border-slate-200 pt-1.5 text-[11px] text-slate-400 dark:border-slate-700 dark:text-slate-500">
+                  Fontes: {m.sources.join(' · ')} {m.model_used && `· ${m.model_used}`}
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -92,7 +170,7 @@ export function AquarismoChat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && send()}
-          placeholder="Pergunte: pH ideal para betta com TDS 400?"
+          placeholder="Pergunte: posso colocar betta com coridora em 60L?"
           className="flex-1 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           maxLength={2000}
         />
@@ -105,7 +183,7 @@ export function AquarismoChat() {
           Enviar
         </button>
       </div>
-      <p className="mt-2 text-[11px] text-slate-400 dark:text-slate-500">Limite 2000 caracteres · 20 msg/min · Se configurar OPENAI_API_KEY, respostas ficam mais naturais (senão, regras locais).</p>
+      <p className="mt-2 text-[11px] text-slate-400 dark:text-slate-500">Limite 2000 caracteres · 20 msg/min · Se configurar OPENAI_API_KEY, respostas ficam mais naturais (senão, regras locais). Conversa persiste 30 min.</p>
     </div>
   );
 }

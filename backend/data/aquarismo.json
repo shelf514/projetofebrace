@@ -10,7 +10,17 @@
     "tds_max": 300,
     "gh_min": 3,
     "gh_max": 8,
-    "notas": "Água calma, sem corrente forte. Trocas parciais 25% semanais. pH estável vale mais que pH perfeito."
+    "volume_min_l": 20,
+    "tamanho_adulto_cm": 7,
+    "esperanca_anos": 3,
+    "dificuldade": "iniciante",
+    "dieta": "Carnívoro — ração específica betta + artêmia/dáfnia 2x/semana",
+    "comportamento": "Territorial e solitário; machos não convivem entre si",
+    "bioma": "Água doce tropical — sudeste asiático",
+    "compativeis": ["coridora", "neon", "tetra"],
+    "incompativeis": ["betta", "kingui", "oscar", "matogrosso"],
+    "notas": "Água calma, sem corrente forte. Trocas parciais 25% semanais. pH estável vale mais que pH perfeito.",
+    "fontes": ["Seriously Fish — Betta splendens", "FishBase — Betta splendens"]
   },
   {
     "especie": "neon",
@@ -23,7 +33,17 @@
     "tds_max": 250,
     "gh_min": 2,
     "gh_max": 6,
-    "notas": "Cardume (6+). Sensível a amônia. Água levemente ácida e bem filtrada."
+    "volume_min_l": 60,
+    "tamanho_adulto_cm": 4,
+    "esperanca_anos": 5,
+    "dificuldade": "iniciante",
+    "dieta": "Onívoro — micro pellets + náuplios de artêmia",
+    "comportamento": "Cardume pacífico (6+). Nada em meia-água",
+    "bioma": "Amazônico — água ácida e macia",
+    "compativeis": ["coridora", "tetra", "matogrosso", "acaradisco"],
+    "incompativeis": ["oscar", "betta"],
+    "notas": "Cardume (6+). Sensível a amônia. Água levemente ácida e bem filtrada.",
+    "fontes": ["Seriously Fish — Paracheirodon innesi", "FishBase"]
   },
   {
     "especie": "guppy",
@@ -36,7 +56,17 @@
     "tds_max": 600,
     "gh_min": 8,
     "gh_max": 12,
-    "notas": "Prefere água mais dura/alcalina. Muito prolífico; controle população."
+    "volume_min_l": 40,
+    "tamanho_adulto_cm": 5,
+    "esperanca_anos": 2,
+    "dificuldade": "iniciante",
+    "dieta": "Onívoro — ração flakes + vegetais",
+    "comportamento": "Pacífico, muito prolífico; controle população",
+    "bioma": "Água doce dura/alcalina — América Central/Sul",
+    "compativeis": ["plati", "molinesia", "espada", "coridora"],
+    "incompativeis": ["oscar", "acaradisco"],
+    "notas": "Prefere água mais dura/alcalina. Muito prolífico; controle população.",
+    "fontes": ["Seriously Fish — Poecilia reticulata"]
   },
   {
     "especie": "molinesia",
@@ -49,7 +79,17 @@
     "tds_max": 650,
     "gh_min": 10,
     "gh_max": 15,
-    "notas": "Pode ir em água levemente salobra (sal a 1-3g/L) mas não obrigatório."
+    "volume_min_l": 80,
+    "tamanho_adulto_cm": 8,
+    "esperanca_anos": 3,
+    "dificuldade": "iniciante",
+    "dieta": "Onívoro herbívoro — flakes vegetais + spirulina",
+    "comportamento": "Pacífica, nada em grupo",
+    "bioma": "Água doce a levemente salobra — México",
+    "compativeis": ["guppy", "plati", "espada"],
+    "incompativeis": ["acaradisco", "neon"],
+    "notas": "Pode ir em água levemente salobra (sal a 1-3g/L) mas não obrigatório.",
+    "fontes": ["FishBase — Poecilia sphenops"]
   },
   {
     "especie": "plati",
@@ -62,7 +102,17 @@
     "tds_max": 500,
     "gh_min": 8,
     "gh_max": 12,
-    "notas": "Pacífico, ótimo para iniciantes. Evite pH abaixo de 6.8."
+    "volume_min_l": 60,
+    "tamanho_adulto_cm": 6,
+    "esperanca_anos": 3,
+    "dificuldade": "iniciante",
+    "dieta": "Onívoro — flakes + matéria vegetal",
+    "comportamento": "Pacífico, ótimo para iniciantes",
+    "bioma": "Água doce dura — México/Guatemala",
+    "compativeis": ["guppy", "molinesia", "espada", "coridora"],
+    "incompativeis": ["oscar"],
+    "notas": "Pacífico, ótimo para iniciantes. Evite pH abaixo de 6.8.",
+    "fontes": ["Seriously Fish — Xiphophorus maculatus"]
   },
   {
     "especie": "espada",
@@ -75,7 +125,17 @@
     "tds_max": 500,
     "gh_min": 8,
     "gh_max": 12,
-    "notas": "Nada muito; precisa de aquário longo."
+    "volume_min_l": 80,
+    "tamanho_adulto_cm": 10,
+    "esperanca_anos": 4,
+    "dificuldade": "iniciante",
+    "dieta": "Onívoro — flakes + suplemento vegetal",
+    "comportamento": "Ativo, precisa de aquário longo",
+    "bioma": "Água doce dura — América Central",
+    "compativeis": ["plati", "guppy", "molinesia"],
+    "incompativeis": ["betta"],
+    "notas": "Nada muito; precisa de aquário longo.",
+    "fontes": ["FishBase — Xiphophorus hellerii"]
   },
   {
     "especie": "cascudo",
@@ -88,7 +148,17 @@
     "tds_max": 400,
     "gh_min": 4,
     "gh_max": 10,
-    "notas": "Precisa de tronco/madeira e esconderijo. Não substitui limpeza."
+    "volume_min_l": 80,
+    "tamanho_adulto_cm": 12,
+    "esperanca_anos": 7,
+    "dificuldade": "iniciante",
+    "dieta": "Detritívoro/herbívoro — pastilhas de fundo + abobrinha",
+    "comportamento": "Noturno, territorial com outros cascudos",
+    "bioma": "Amazônico — fundo de rios",
+    "compativeis": ["neon", "coridora", "tetra", "acaradisco"],
+    "incompativeis": ["oscar"],
+    "notas": "Precisa de tronco/madeira e esconderijo. Não substitui limpeza.",
+    "fontes": ["Seriously Fish — Ancistrus sp."]
   },
   {
     "especie": "kingui",
@@ -101,7 +171,17 @@
     "tds_max": 400,
     "gh_min": 6,
     "gh_max": 12,
-    "notas": "Água fria, aquário grande (40L por peixe). Filtragem forte."
+    "volume_min_l": 120,
+    "tamanho_adulto_cm": 20,
+    "esperanca_anos": 10,
+    "dificuldade": "intermediario",
+    "dieta": "Onívoro — ração sinking + vegetais branqueados",
+    "comportamento": "Pacífico, água fria, produz muito resíduo",
+    "bioma": "Água doce fria — China (domesticado)",
+    "compativeis": ["kingui"],
+    "incompativeis": ["betta", "neon", "acaradisco", "tetra", "matogrosso", "oscar"],
+    "notas": "Água fria, aquário grande (40L por peixe). Filtragem forte. Não misturar com tropicais.",
+    "fontes": ["FishBase — Carassius auratus"]
   },
   {
     "especie": "colisa",
@@ -114,7 +194,17 @@
     "tds_max": 300,
     "gh_min": 4,
     "gh_max": 10,
-    "notas": "Labirintídeo: respira ar atmosférico. Aquário com plantas flutuantes."
+    "volume_min_l": 60,
+    "tamanho_adulto_cm": 7,
+    "esperanca_anos": 4,
+    "dificuldade": "intermediario",
+    "dieta": "Onívoro — flakes + alimento vivo pequeno",
+    "comportamento": "Labirintídeo calmo, macho territorial",
+    "bioma": "Água doce tropical — sul da Ásia",
+    "compativeis": ["neon", "coridora", "tetra", "paulistinha"],
+    "incompativeis": ["betta", "oscar", "matogrosso"],
+    "notas": "Labirintídeo: respira ar atmosférico. Aquário com plantas flutuantes.",
+    "fontes": ["Seriously Fish — Trichogaster lalius"]
   },
   {
     "especie": "matogrosso",
@@ -127,7 +217,17 @@
     "tds_max": 300,
     "gh_min": 3,
     "gh_max": 8,
-    "notas": "Cardume ativo, pode beliscar nadadeiras de betta."
+    "volume_min_l": 60,
+    "tamanho_adulto_cm": 4,
+    "esperanca_anos": 5,
+    "dificuldade": "iniciante",
+    "dieta": "Onívoro — flakes + vivo",
+    "comportamento": "Cardume ativo, pode beliscar nadadeiras de betta",
+    "bioma": "Amazônico",
+    "compativeis": ["neon", "tetra", "coridora"],
+    "incompativeis": ["betta", "colisa", "kingui"],
+    "notas": "Cardume ativo, pode beliscar nadadeiras de betta.",
+    "fontes": ["FishBase — Hyphessobrycon eques"]
   },
   {
     "especie": "coridora",
@@ -140,7 +240,17 @@
     "tds_max": 350,
     "gh_min": 3,
     "gh_max": 10,
-    "notas": "Fundo; precisa de substrato liso (areia fina). Cardume 5+."
+    "volume_min_l": 60,
+    "tamanho_adulto_cm": 6,
+    "esperanca_anos": 5,
+    "dificuldade": "iniciante",
+    "dieta": "Onívoro de fundo — pastilhas sinking + tubifex",
+    "comportamento": "Cardume pacífico de fundo, substrato liso obrigatório",
+    "bioma": "Amazônico — fundo arenoso",
+    "compativeis": ["neon", "tetra", "colisa", "acaradisco", "guppy"],
+    "incompativeis": ["oscar"],
+    "notas": "Fundo; precisa de substrato liso (areia fina). Cardume 5+.",
+    "fontes": ["Seriously Fish — Corydoras sp."]
   },
   {
     "especie": "acaradisco",
@@ -153,7 +263,17 @@
     "tds_max": 200,
     "gh_min": 1,
     "gh_max": 4,
-    "notas": "Exigente: água muito limpa, quente e ácida. Troca frequente."
+    "volume_min_l": 200,
+    "tamanho_adulto_cm": 15,
+    "esperanca_anos": 10,
+    "dificuldade": "avancado",
+    "dieta": "Carnívoro — heartmix, artêmia, ração disco",
+    "comportamento": "Sensível, cardume hierárquico, exige água impecável",
+    "bioma": "Amazônico — água quente, ácida e macia",
+    "compativeis": ["neon", "coridora", "tetra"],
+    "incompativeis": ["guppy", "molinesia", "plati", "kingui", "oscar", "betta"],
+    "notas": "Exigente: água muito limpa, quente e ácida. Troca frequente.",
+    "fontes": ["Seriously Fish — Symphysodon discus"]
   },
   {
     "especie": "oscar",
@@ -166,7 +286,17 @@
     "tds_max": 400,
     "gh_min": 5,
     "gh_max": 10,
-    "notas": "Grande (30cm+), aquário 200L+. Escava substrato."
+    "volume_min_l": 250,
+    "tamanho_adulto_cm": 35,
+    "esperanca_anos": 12,
+    "dificuldade": "intermediario",
+    "dieta": "Carnívoro — pellets grandes + camarão",
+    "comportamento": "Grande, territorial, escava substrato, come peixes pequenos",
+    "bioma": "Amazônico — rios/planícies alagadas",
+    "compativeis": [],
+    "incompativeis": ["neon", "guppy", "tetra", "matogrosso", "paulistinha", "betta", "colisa", "coridora"],
+    "notas": "Grande (30cm+), aquário 200L+. Escava substrato. Só com peixes grandes.",
+    "fontes": ["FishBase — Astronotus ocellatus"]
   },
   {
     "especie": "tetra",
@@ -179,7 +309,17 @@
     "tds_max": 300,
     "gh_min": 4,
     "gh_max": 10,
-    "notas": "Resistente, bom para iniciantes em cardume."
+    "volume_min_l": 60,
+    "tamanho_adulto_cm": 5,
+    "esperanca_anos": 5,
+    "dificuldade": "iniciante",
+    "dieta": "Onívoro — flakes + vivo",
+    "comportamento": "Cardume pacífico, resistente",
+    "bioma": "Amazônico — Paraguai/Guaporé",
+    "compativeis": ["neon", "matogrosso", "coridora", "colisa"],
+    "incompativeis": ["oscar", "kingui"],
+    "notas": "Resistente, bom para iniciantes em cardume.",
+    "fontes": ["Seriously Fish — Gymnocorymbus ternetzi"]
   },
   {
     "especie": "paulistinha",
@@ -192,6 +332,16 @@
     "tds_max": 350,
     "gh_min": 4,
     "gh_max": 10,
-    "notas": "Muito ativo, precisa de tampa (pula)."
+    "volume_min_l": 60,
+    "tamanho_adulto_cm": 5,
+    "esperanca_anos": 4,
+    "dificuldade": "iniciante",
+    "dieta": "Onívoro — flakes pequenos + micro vivo",
+    "comportamento": "Muito ativo, precisa de tampa (pula), cardume 6+",
+    "bioma": "Água doce subtropical — Índia/Bangladesh",
+    "compativeis": ["tetra", "coridora", "colisa"],
+    "incompativeis": ["oscar", "acaradisco", "kingui"],
+    "notas": "Muito ativo, precisa de tampa (pula).",
+    "fontes": ["FishBase — Danio rerio"]
   }
 ]

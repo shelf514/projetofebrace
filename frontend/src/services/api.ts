@@ -1,4 +1,4 @@
-import type { ChatRequest, ChatResponse, Device, Health, MLStatus, Reading, ReadingStats } from '../types';
+import type { ChatRequest, ChatResponse, Device, EspecieFicha, EspecieResumo, Health, MLStatus, Reading, ReadingStats, RecomendarRequest, RecomendarResponse, CompatibilidadeResult } from '../types';
 
 const STORAGE_KEY = 'aquasense.api_url';
 
@@ -12,7 +12,6 @@ export function getApiBaseUrl(): string {
 
 export function setApiBaseUrl(url: string): void {
   const trimmed = url.trim().replace(/\/+$/, '');
-  // Validacao basica: deve comecar com http:// ou https:// ou ser vazio (same-origin)
   if (trimmed && !/^https?:\/\/.+/.test(trimmed)) {
     throw new Error('URL deve começar com http:// ou https://');
   }
@@ -41,7 +40,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       const body = await response.json();
       if (body?.detail) detail = typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail);
     } catch {
-      // corpo nao-JSON: mantem o status
+      // corpo nao-JSON
     }
     throw new Error(detail);
   }
@@ -87,7 +86,13 @@ export const api = {
   },
   mlStatus: () => request<MLStatus>('/api/ml/status'),
   chat: (payload: ChatRequest) => request<ChatResponse>('/api/chat', { method: 'POST', body: JSON.stringify(payload) }),
-  especies: () => request<{ especies: { especie: string; nome: string }[] }>('/api/chat/especies'),
+  especies: () => request<{ especies: { especie: string; nome: string; ph_min: number; ph_max: number }[]; total: number }>('/api/chat/especies'),
+  chatHistory: (id: string) => request<{ conversation_id: string; messages: { role: string; content: string }[]; count: number }>(`/api/chat/history/${encodeURIComponent(id)}`),
+  chatHistoryDelete: (id: string) => request<{ deleted: boolean }>(`/api/chat/history/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  aquarismoEspecies: () => request<{ especies: EspecieResumo[]; total: number }>('/api/aquarismo/especies'),
+  aquarismoFicha: (especie: string) => request<EspecieFicha>(`/api/aquarismo/especies/${encodeURIComponent(especie)}`),
+  aquarismoCompatibilidade: (a: string, b: string) => request<CompatibilidadeResult>(`/api/aquarismo/compatibilidade?especie_a=${encodeURIComponent(a)}&especie_b=${encodeURIComponent(b)}`),
+  aquarismoRecomendar: (payload: RecomendarRequest) => request<RecomendarResponse>('/api/aquarismo/recomendar', { method: 'POST', body: JSON.stringify(payload) }),
 };
 
 export function formatTimestamp(iso: string | null | undefined): string {

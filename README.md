@@ -263,3 +263,9 @@ npm test
 | GET    | `/api/ml/status`         | Informações do modelo carregado             |
 | GET    | `/api/ml/datasets`       | Lista datasets disponíveis                  |
 | POST   | `/api/ml/train`          | Treina modelo (requer API key)              |
+| GET    | `/api/aquarismo/especies`| Lista 15 espécies com pH/temp/TDS/volume     |
+| GET    | `/api/aquarismo/especies/{especie}` | Ficha completa de uma espécie        |
+| GET    | `/api/aquarismo/compatibilidade?especie_a=betta&especie_b=neon` | Compatibilidade entre 2 espécies |
+| POST   | `/api/aquarismo/recomendar` | Recomendação por raça (volume, companheiros, temp/TDS/pH) |
+| POST   | `/api/chat`              | Chat aquarismo offline-first + LLM opcional |
+| GET    | `/api/chat/especies`     | Lista resumida para o chat                  |

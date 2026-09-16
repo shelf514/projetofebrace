@@ -86,6 +86,8 @@ export interface WsReadingMessage extends WsMessage<Reading> {
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  sources?: string[];
+  model_used?: string;
 }
 
 export interface ChatRequest {
@@ -96,6 +98,10 @@ export interface ChatRequest {
   temperature?: number | null;
   turbidity?: number | null;
   tds?: number | null;
+  ph?: number | null;
+  gh?: number | null;
+  volume_l?: number | null;
+  companheiros?: string[] | null;
 }
 
 export interface ChatResponse {
@@ -103,6 +109,70 @@ export interface ChatResponse {
   sources: string[];
   model_used: string;
   especie?: string | null;
+  conversation_id?: string | null;
 }
 
 export type EspecieOption = { especie: string; nome: string };
+
+export interface EspecieResumo {
+  especie: string;
+  nome: string;
+  ph_min: number;
+  ph_max: number;
+  temp_min: number;
+  temp_max: number;
+  tds_max: number;
+  volume_min_l?: number | null;
+  dificuldade?: string | null;
+}
+
+export interface EspecieFicha {
+  especie: string;
+  nome: string;
+  ph_min: number;
+  ph_max: number;
+  temp_min: number;
+  temp_max: number;
+  tds_min: number;
+  tds_max: number;
+  gh_min: number;
+  gh_max: number;
+  volume_min_l: number;
+  tamanho_adulto_cm: number;
+  esperanca_anos?: number;
+  dificuldade: string;
+  dieta: string;
+  comportamento: string;
+  bioma: string;
+  compativeis: string[];
+  incompativeis: string[];
+  notas: string;
+  fontes: string[];
+}
+
+export interface RecomendarRequest {
+  especie: string;
+  volume_l?: number | null;
+  companheiros?: string[] | null;
+  temperature?: number | null;
+  tds?: number | null;
+  ph?: number | null;
+  turbidity?: number | null;
+}
+
+export interface CompatibilidadeResult {
+  compativel: boolean | null;
+  motivo: string;
+  especies: string[];
+}
+
+export interface RecomendarResponse {
+  especie: string;
+  nome: string;
+  ficha: EspecieFicha;
+  alertas: string[];
+  recomendacoes: string[];
+  compatibilidade: CompatibilidadeResult[];
+  fontes: string[];
+  diagnostico_turbidez?: { alertas: string[]; sources: string[] };
+}
