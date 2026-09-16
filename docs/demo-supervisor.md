@@ -4,7 +4,7 @@ Página única para apresentar o projeto sem instalar nada em máquinas/tablets 
 
 ## O que mostrar
 
-1. **Site aberto no navegador — https://aquasense-ai-fokz.onrender.com**:
+1. **Site aberto no navegador — https://aquasense-ai.onrender.com**:
    - Dashboard com temperatura, turbidez e TDS em gráficos.
    - **Dados chegando em tempo real**: o servidor gera uma leitura DEMO a cada ~40 s
      (selo "DEMO — dados simulados" no dashboard). Espere alguns segundos e o gráfico
@@ -18,16 +18,16 @@ Página única para apresentar o projeto sem instalar nada em máquinas/tablets 
 
 3. **(Opcional) ESP32 real** — o firmware envia para o mesmo backend hospedado:
    - `firmware/esp32/include/secrets.h` com
-     `API_URL = https://aquasense-ai-fokz.onrender.com/api/readings`
+      `API_URL = https://aquasense-ai.onrender.com/api/readings`
      e a `API_KEY` do servidor (Render → Environment).
 
 ## Cartões rápidos (para o estande)
 
 | Item | Link | Observação |
 | ---- | ---- | ---------- |
-| Site ao vivo | https://aquasense-ai-fokz.onrender.com | Abrir ~30 s antes; o plano gratuito "dorme" em ~15 min ocioso |
+| Site ao vivo | https://aquasense-ai.onrender.com | Abrir ~30 s antes; o plano gratuito "dorme" em ~15 min ocioso |
 | APK Android | GitHub → Releases (`nightly`) | Instalação direta no celular |
-| API docs | https://aquasense-ai-fokz.onrender.com/docs | Swagger interativo (mostra as rotas do ESP32) |
+| API docs | https://aquasense-ai.onrender.com/docs | Swagger interativo (mostra as rotas do ESP32) |
 | Repositório | https://github.com/shelf514/projetofebrace | Código, firmware e documentação |
 
 ## Mensagens padrão

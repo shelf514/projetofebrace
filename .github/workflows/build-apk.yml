@@ -58,6 +58,9 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew --no-daemon assembleDebug
+        # TODO (P1): APK release assinado — configurar secrets ANDROID_KEYSTORE_BASE64 /
+        # ANDROID_KEY_ALIAS / ANDROID_KEY_PASSWORD / ANDROID_STORE_PASSWORD e trocar por
+        # assembleRelease + assinatura (apksigner). Debug permite repack; nao publicar na Play.
 
       - name: Upload APK (artifact)
         uses: actions/upload-artifact@v4

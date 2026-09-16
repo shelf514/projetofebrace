@@ -9,16 +9,9 @@
 
 #include "secrets.h"
 
-// Guard: impede flash com credenciais placeholder (troque em secrets.h)
-#if defined(WIFI_SSID) && defined(WIFI_PASSWORD) && defined(API_KEY)
-  #if __has_include("secrets.h")
-    // Wifi placeholder check - falha de compilacao se nao configurado fora do modo calibracao
-    #if CALIBRATION_MODE == 0
-      // Comparacao de strings via pre-processador nao e possivel, validacao em runtime
-      // mas deixamos aviso visivel para quem compila
-    #endif
-  #endif
-#endif
+// Guard: o pre-processador C nao compara strings, entao a validacao de
+// credenciais placeholder (WIFI_SSID / API_KEY em secrets.h) e feita em
+// runtime no setup() em main.cpp — NAO adicione checagem #if de string aqui.
 
 // Identificacao do dispositivo
 #define DEVICE_ID "AQUASENSE-001"
@@ -61,7 +54,8 @@
 
 // ---- Amostragem / validacao ----
 #define SAMPLE_COUNT 10              // leituras por coleta (media)
-#define SENSOR_STALE_MS 500          // intervalo entre amostras individuais
+#define SENSOR_SAMPLE_DELAY_MS 500   // intervalo entre amostras individuais (delay de amostragem)
+#define SENSOR_STALE_MS SENSOR_SAMPLE_DELAY_MS  // alias legado (nao usar em codigo novo)
 
 // Limites fisicos (rejeitam leituras absurdas ANTES do envio)
 #define TEMP_MIN -5.0f

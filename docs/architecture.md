@@ -32,16 +32,18 @@ ecossistema equivalente nem memória para tal. A IA roda no backend, onde o
 modelo pode ser re-treinado com novos dados. O ESP32 faz apenas:
 coleta → média de amostras → validação física → POST.
 
-### Comunicação HTTP REST + polling
-A arquitetura inicial usa HTTP simples (mais robusta em redes de feira) e o
-dashboard faz polling a cada 10-15 s. A evolução natural é WebSocket no
-endpoint `/ws/readings` — o backend e o frontend já estão estruturados para
-essa expansão (services desacoplados, sem estado compartilhado).
+### Comunicação HTTP REST + WebSocket (com fallback polling)
+O ESP32 envia via HTTP POST (robusto em redes de feira). O dashboard recebe
+leituras novas em **tempo real via WebSocket `/ws/readings`** (broadcast do
+backend a cada `POST /api/readings`, simulador DEMO incluído) com **fallback
+automático para polling** (10 s `latest`, 15 s `history`, 30 s `devices/ml`)
+quando o WS está indisponível — e o poll do `latest` é pausado com o WS vivo.
 
 ### Banco de dados
 SQLite foi escolhido pela simplicidade de implantação local. A camada usa
 SQLAlchemy, então a troca para PostgreSQL é feita apenas alterando
-`DATABASE_URL` no `.env`.
+`DATABASE_URL` no `.env` (o `render.yaml` já provisiona Postgres via
+`fromDatabase`; o backend normaliza `postgres://` → `postgresql+psycopg://`).
 
 ### Validação em duas camadas
 - **Pydantic + hard bounds**: rejeita payloads malformados e valores
@@ -104,7 +106,6 @@ parâmetros, métricas, rótulos e origem dos dados.
 
 ## Evolução prevista
 
-- PostgreSQL
 - XGBoost como modelo opcional
 - Fila de mensagens para múltiplos ESP32
 - Endpoints de exportação (PDF/JSON) e relatórios

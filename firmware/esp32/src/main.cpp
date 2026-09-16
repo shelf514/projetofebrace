@@ -73,14 +73,17 @@ bool connectWiFi() {
 // ------------------------------------------------------------
 // Leituras analogicas com media simples
 // ------------------------------------------------------------
-float readAnalogAverageSampleCount(int pin, float maxVoltage, int sampleCount) {
+float readAnalogRawAverage(int pin, int sampleCount) {
   float sum = 0.0f;
   for (int i = 0; i < sampleCount; i++) {
     sum += analogRead(pin);
-    delay(SENSOR_STALE_MS);
+    delay(SENSOR_SAMPLE_DELAY_MS);
   }
-  float average = sum / sampleCount;
-  return (average / ADC_RESOLUTION) * maxVoltage;
+  return sum / sampleCount;
+}
+
+float readAnalogAverageSampleCount(int pin, float maxVoltage, int sampleCount) {
+  return (readAnalogRawAverage(pin, sampleCount) / ADC_RESOLUTION) * maxVoltage;
 }
 
 float readAnalogAverage(int pin, float maxVoltage) {
@@ -193,12 +196,13 @@ void loop() {
 
   // No modo calibracao usamos poucas amostras para o ciclo ficar ~1s
   const int calibrationSamples = 3;
-  float turbidityAdc = readAnalogAverageSampleCount(PIN_TURBIDITY_ADC, TDS_REF_VOLTAGE, calibrationSamples);
-  float turbidityVoltage = turbidityAdc;
+  float turbidityRaw = readAnalogRawAverage(PIN_TURBIDITY_ADC, calibrationSamples);
+  float turbidityVoltage = (turbidityRaw / ADC_RESOLUTION) * TDS_REF_VOLTAGE;
   float ntu = TURBIDITY_A * turbidityVoltage * turbidityVoltage +
               TURBIDITY_B * turbidityVoltage + TURBIDITY_C;
 
-  float tdsVoltage = readAnalogAverageSampleCount(PIN_TDS_ADC, TDS_REF_VOLTAGE, calibrationSamples);
+  float tdsRaw = readAnalogRawAverage(PIN_TDS_ADC, calibrationSamples);
+  float tdsVoltage = (tdsRaw / ADC_RESOLUTION) * TDS_REF_VOLTAGE;
   float compensationVoltage = tdsVoltage / (1.0f + 0.02f * (temperature - 25.0f));
   float tds = (133.42f * compensationVoltage * compensationVoltage * compensationVoltage -
                255.86f * compensationVoltage * compensationVoltage +
@@ -212,9 +216,9 @@ void loop() {
     Serial.println("Temperatura: SEM SENSOR (cheque o DS18B20)");
   }
   Serial.printf("Turbidez: ADC=%.0f V=%.3f -> NTU calculado=%.2f\n",
-                turbidityAdc, turbidityVoltage, ntu < 0 ? 0 : ntu);
+                turbidityRaw, turbidityVoltage, ntu < 0 ? 0 : ntu);
   Serial.printf("TDS:      ADC=%.0f V=%.3f (comp %.3f) -> ppm calculado=%.1f\n",
-                tdsVoltage, tdsVoltage, compensationVoltage, tds < 0 ? 0 : tds);
+                tdsRaw, tdsVoltage, compensationVoltage, tds < 0 ? 0 : tds);
 
   unsigned long elapsed = millis() - started;
   if (elapsed < 1000UL) {
