@@ -126,7 +126,11 @@ export function AquarismoChat() {
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
+        <label htmlFor="chat-especie" className="sr-only">
+          Espécie
+        </label>
         <select
+          id="chat-especie"
           value={especie}
           onChange={(e) => setEspecie(e.target.value)}
           className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
@@ -143,7 +147,7 @@ export function AquarismoChat() {
         <span className="text-xs text-slate-400 dark:text-slate-500">15 espécies · TTL 30min</span>
       </div>
 
-      <div ref={listRef} className="flex max-h-[420px] min-h-[240px] flex-col gap-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+      <div ref={listRef} role="log" aria-live="polite" aria-label="Mensagens do chat" className="flex max-h-[420px] min-h-[240px] flex-col gap-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${m.role === 'user' ? 'bg-sky-600 text-white dark:bg-sky-500' : 'bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700'}`}>
@@ -156,7 +160,7 @@ export function AquarismoChat() {
             </div>
           </div>
         ))}
-        {loading && <div className="self-start rounded-2xl bg-white px-3 py-2 text-xs text-slate-500 shadow-sm dark:bg-slate-800 dark:text-slate-400 animate-pulse">Digitando…</div>}
+        {loading && <div role="status" className="self-start rounded-2xl bg-white px-3 py-2 text-xs text-slate-500 shadow-sm dark:bg-slate-800 dark:text-slate-400 animate-pulse">Digitando…</div>}
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
@@ -166,7 +170,11 @@ export function AquarismoChat() {
       </div>
 
       <div className="mt-3 flex gap-2">
+        <label htmlFor="chat-pergunta" className="sr-only">
+          Pergunta sobre aquarismo
+        </label>
         <input
+          id="chat-pergunta"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && send()}

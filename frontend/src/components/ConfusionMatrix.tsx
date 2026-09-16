@@ -1,16 +1,19 @@
 import type { ConfusionMatrix } from '../types';
+import { useTheme } from './ThemeProvider';
 
 export function ConfusionMatrixView({ cm }: { cm: ConfusionMatrix }) {
   const max = Math.max(...cm.matrix.flat().map(Number), 1);
-  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   return (
     <div className="overflow-x-auto">
       <table className="border-collapse text-sm">
+        <caption className="sr-only">Matriz de confusão do modelo (linhas: classe real, colunas: classe prevista)</caption>
         <thead>
           <tr>
-            <th className="p-1" />
+            <th scope="col" className="p-1"><span className="sr-only">Real / Previsto</span></th>
             {cm.labels.map((label) => (
-              <th key={label} className="px-2 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <th key={label} scope="col" className="px-2 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
                 Previsto: {label}
               </th>
             ))}
@@ -19,7 +22,7 @@ export function ConfusionMatrixView({ cm }: { cm: ConfusionMatrix }) {
         <tbody>
           {cm.matrix.map((row, i) => (
             <tr key={cm.labels[i]}>
-              <th className="px-2 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400">Real: {cm.labels[i]}</th>
+              <th scope="row" className="px-2 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400">Real: {cm.labels[i]}</th>
               {row.map((cell, j) => {
                 const intensity = Number(cell) / max;
                 const bg = isDark

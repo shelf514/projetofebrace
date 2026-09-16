@@ -17,10 +17,13 @@ export function Layout() {
 
   return (
     <div className="min-h-full bg-[var(--bg)] transition-colors duration-300">
+      <a href="#conteudo" className="skip-link">
+        Pular para o conteúdo
+      </a>
       <header className="sticky top-0 z-40 border-b border-white/10 bg-gradient-to-r from-slate-950 via-sky-950 to-slate-950 text-white shadow-[0_4px_30px_rgba(0,0,0,0.3)] backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 text-lg font-bold shadow-lg shadow-sky-500/20">💧</span>
+            <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 text-lg font-bold shadow-lg shadow-sky-500/20">💧</span>
             <div>
               <h1 className="text-[15px] font-extrabold tracking-tight leading-none">AQUASENSE AI</h1>
               <p className="hidden text-[10px] font-medium tracking-widest text-sky-200/70 sm:block">FEBRACE · ÁGUA</p>
@@ -28,7 +31,7 @@ export function Layout() {
           </div>
 
           {/* Desktop nav */}
-          <nav className="hidden flex-1 items-center gap-1 lg:flex">
+          <nav aria-label="Navegação principal" className="hidden flex-1 items-center gap-1 lg:flex">
             {links.map((link) => (
               <NavLink
                 key={link.to}
@@ -58,26 +61,29 @@ export function Layout() {
               type="button"
               onClick={toggle}
               aria-label="Alternar tema"
+              aria-pressed={theme === 'dark'}
               className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/10 text-sm backdrop-blur hover:bg-white/20 transition-colors"
               title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
             >
-              {theme === 'dark' ? '☀️' : '🌙'}
+              <span aria-hidden="true">{theme === 'dark' ? '☀️' : '🌙'}</span>
             </button>
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-white lg:hidden"
               aria-label="Menu"
+              aria-expanded={mobileOpen}
+              aria-controls="menu-mobile"
             >
-              {mobileOpen ? '✕' : '☰'}
+              <span aria-hidden="true">{mobileOpen ? '✕' : '☰'}</span>
             </button>
           </div>
         </div>
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="animate-fade-in border-t border-white/10 bg-slate-900/95 px-4 py-3 backdrop-blur lg:hidden">
-            <nav className="flex flex-col gap-1">
+          <div id="menu-mobile" className="animate-fade-in border-t border-white/10 bg-slate-900/95 px-4 py-3 backdrop-blur lg:hidden">
+            <nav aria-label="Navegação móvel" className="flex flex-col gap-1">
               {links.map((link) => (
                 <NavLink
                   key={link.to}
@@ -99,7 +105,7 @@ export function Layout() {
         )}
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8">
+      <main id="conteudo" className="mx-auto max-w-7xl px-4 py-6 sm:py-8">
         <div className="animate-fade-in">
           <Outlet />
         </div>

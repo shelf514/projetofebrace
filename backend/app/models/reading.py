@@ -1,12 +1,16 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, String
 
 from app.database.db import Base
 
 
 class Reading(Base):
     __tablename__ = "readings"
+
+    __table_args__ = (
+        Index("ix_readings_device_timestamp", "device_id", "timestamp"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     device_id = Column(String(64), ForeignKey("devices.id"), index=True, nullable=False)

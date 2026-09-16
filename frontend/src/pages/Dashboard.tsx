@@ -143,6 +143,8 @@ export function Dashboard() {
           <span className="hidden text-xs font-medium text-slate-500 dark:text-slate-400 sm:inline">{device?.id ?? '—'}</span>
         </div>
         <span
+          role="status"
+          aria-live="polite"
           className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-colors ${
             wsConnected
               ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20 dark:bg-emerald-900/30 dark:text-emerald-300'

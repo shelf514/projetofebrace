@@ -59,8 +59,9 @@ def seed_demo(db: Session) -> int:
         db.add(device)
         db.flush()
     readings = build_readings()
-    for item in readings:
-        db.add(
+    # bulk insert: ~4320 linhas em 1 round-trip em vez de 4320 adds (boot rapido)
+    db.bulk_save_objects(
+        [
             Reading(
                 device_id=device.id,
                 timestamp=item["timestamp"],
@@ -71,7 +72,9 @@ def seed_demo(db: Session) -> int:
                 prediction_probability=None,
                 anomaly=item["turbidity"] > 300 or item["tds"] > 800,
             )
-        )
+            for item in readings
+        ]
+    )
     device.last_seen = readings[0]["timestamp"]
     db.commit()
     return len(readings)

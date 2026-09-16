@@ -84,12 +84,14 @@ export function History() {
           value={deviceId}
           onChange={(e) => { setDeviceId(e.target.value); setPage(0); }}
           placeholder="Filtrar por device_id"
+          aria-label="Filtrar por device_id"
           className="flex-1 min-w-[180px] rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-xs text-slate-700 placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
         />
         <input
           value={predictionFilter}
           onChange={(e) => { setPredictionFilter(e.target.value); setPage(0); }}
           placeholder="Filtrar por predição"
+          aria-label="Filtrar por predição"
           className="flex-1 min-w-[160px] rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-xs text-slate-700 placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
         />
       </div>
@@ -102,16 +104,17 @@ export function History() {
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
+              <caption className="sr-only">Leituras de qualidade da água no período filtrado</caption>
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400">
-                  <th className="px-4 py-3 font-semibold">Data/hora</th>
-                  <th className="px-4 py-3 font-semibold">Dispositivo</th>
-                  <th className="px-4 py-3 text-right font-semibold">Temp (°C)</th>
-                  <th className="px-4 py-3 text-right font-semibold">Turbidez</th>
-                  <th className="px-4 py-3 text-right font-semibold">TDS</th>
-                  <th className="px-4 py-3 font-semibold">Predição</th>
-                  <th className="px-4 py-3 text-right font-semibold">Conf.</th>
-                  <th className="px-4 py-3 font-semibold">Anomalia</th>
+                  <th scope="col" className="px-4 py-3 font-semibold">Data/hora</th>
+                  <th scope="col" className="px-4 py-3 font-semibold">Dispositivo</th>
+                  <th scope="col" className="px-4 py-3 text-right font-semibold">Temp (°C)</th>
+                  <th scope="col" className="px-4 py-3 text-right font-semibold">Turbidez</th>
+                  <th scope="col" className="px-4 py-3 text-right font-semibold">TDS</th>
+                  <th scope="col" className="px-4 py-3 font-semibold">Predição</th>
+                  <th scope="col" className="px-4 py-3 text-right font-semibold">Conf.</th>
+                  <th scope="col" className="px-4 py-3 font-semibold">Anomalia</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">

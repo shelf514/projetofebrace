@@ -38,8 +38,9 @@ export function PeriodFilter({ period, onPeriodChange, customStart, customEnd, o
         const invalid = customStart && customEnd && new Date(customStart) > new Date(customEnd);
         return (
           <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 dark:border-slate-800 dark:bg-slate-900">
-            <label className="text-xs font-medium text-slate-500 dark:text-slate-400">De</label>
+            <label htmlFor="periodo-de" className="text-xs font-medium text-slate-500 dark:text-slate-400">De</label>
             <input
+              id="periodo-de"
               type="datetime-local"
               value={customStart ?? ''}
               max={customEnd || undefined}
@@ -47,8 +48,9 @@ export function PeriodFilter({ period, onPeriodChange, customStart, customEnd, o
               className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
             />
             <span className="text-xs text-slate-400">—</span>
-            <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Até</label>
+            <label htmlFor="periodo-ate" className="text-xs font-medium text-slate-500 dark:text-slate-400">Até</label>
             <input
+              id="periodo-ate"
               type="datetime-local"
               value={customEnd ?? ''}
               min={customStart || undefined}

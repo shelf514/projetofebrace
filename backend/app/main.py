@@ -44,6 +44,21 @@ def _finite(value):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    # Bancos criados antes do indice composto: garante sem Alembic (idempotente).
+    try:
+        from sqlalchemy import text as _text
+
+        with engine.begin() as _conn:
+            _conn.execute(
+                _text(
+                    "CREATE INDEX IF NOT EXISTS ix_readings_device_timestamp "
+                    "ON readings (device_id, timestamp)"
+                )
+            )
+    except Exception:
+        logging.getLogger("aquasense.db").warning(
+            "Nao foi possivel garantir ix_readings_device_timestamp", exc_info=True
+        )
     with SessionLocal() as db:
         seed_demo_if_empty(db)
     ml_service.load()
@@ -85,10 +100,14 @@ _MAX_TRACKED_IPS = 2000
 _rate_store: dict[str, list[float]] = defaultdict(list)
 _chat_rate_store: dict[str, list[float]] = defaultdict(list)
 _aquarismo_rate_store: dict[str, list[float]] = defaultdict(list)
+_predict_rate_store: dict[str, list[float]] = defaultdict(list)
+_export_rate_store: dict[str, list[float]] = defaultdict(list)
 _RATE_LIMIT = 60  # requisições /api/readings
 _RATE_WINDOW = 60  # segundos
 _CHAT_RATE_LIMIT = settings.chat_rate_limit  # /api/chat (configurável via .env)
 _AQUARISMO_RATE_LIMIT = 30  # /api/aquarismo/recomendar
+_PREDICT_RATE_LIMIT = 30  # /api/predict (inferencia sem auth)
+_EXPORT_RATE_LIMIT = 30  # /api/readings/export (CSV pesado)
 
 
 @app.middleware("http")
@@ -102,6 +121,10 @@ async def rate_limit_middleware(request: Request, call_next):
         target_store, limit = _chat_rate_store, _CHAT_RATE_LIMIT
     elif request.url.path == "/api/aquarismo/recomendar" and request.method == "POST":
         target_store, limit = _aquarismo_rate_store, _AQUARISMO_RATE_LIMIT
+    elif request.url.path == "/api/predict" and request.method == "POST":
+        target_store, limit = _predict_rate_store, _PREDICT_RATE_LIMIT
+    elif request.url.path == "/api/readings/export" and request.method == "GET":
+        target_store, limit = _export_rate_store, _EXPORT_RATE_LIMIT
     if target_store is not None:
         ip = request.client.host if request.client else "unknown"
         now = _time.monotonic()

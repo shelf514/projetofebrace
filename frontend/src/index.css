@@ -87,3 +87,40 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
+
+/* Skip-link (acessibilidade): visivel so no foco por teclado */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  border-radius: 0.75rem;
+  background: #0369a1;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  transition: top 0.15s ease;
+}
+.skip-link:focus-visible {
+  top: 0.75rem;
+}
+
+/* Foco visivel por teclado */
+:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+/* Respeita quem prefere menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-fade-in,
+  .animate-fade-in-up,
+  .animate-stagger > * {
+    animation: none;
+    opacity: 1;
+  }
+}
