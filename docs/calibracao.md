@@ -1,4 +1,4 @@
-# Calibração dos sensores — AquaSense AI (FEBRACE)
+# Calibração dos sensores — AquaSense AI
 
 > Sem esta etapa, os coeficientes em `firmware/esp32/include/config.h` são os
 > valores default de fabricante (SEN0189 @ 5 V / Arduino) e **não valem para o

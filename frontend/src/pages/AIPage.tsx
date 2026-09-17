@@ -77,7 +77,7 @@ export function AIPage() {
         <button type="button" onClick={refresh} className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-md transition-all hover:bg-slate-800 hover:shadow-lg active:scale-[0.98] dark:bg-white dark:text-slate-900">↻ Atualizar</button>
       </div>
 
-      {/* Aquarismo vem primeiro na aba IA — entrega principal FEBRACE */}
+      {/* Aquarismo vem primeiro na aba IA — entrega principal do app */}
       {renderAquarismo()}
 
       <div className="border-t border-slate-200 pt-6 dark:border-slate-800">

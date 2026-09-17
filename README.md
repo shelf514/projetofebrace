@@ -1,6 +1,6 @@
 # AquaSense AI
 
-Sistema de monitoramento da qualidade da água de baixo custo para projeto científico (FEBRACE).
+Sistema de monitoramento da qualidade da água de baixo custo para projeto científico autoral.
 
 O AquaSense AI coleta medições de temperatura, turbidez e TDS com um **ESP32**, envia os dados por Wi-Fi para um **backend FastAPI**, aplica **Machine Learning** (previsão de condição + detecção de anomalias) e exibe tudo em um **dashboard web responsivo** — que também é empacotado como **APK Android** (Capacitor). Leituras novas aparecem no dashboard em **tempo real via WebSocket** (com fallback automático para polling).
 

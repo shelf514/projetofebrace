@@ -1,7 +1,7 @@
 # Metodologia científica — AquaSense AI
 
 Este documento define os procedimentos para que os dados coletados possam ser
-usados em pesquisa científica (FEBRACE) de forma íntegra e reproduzível.
+usados em pesquisa científica de forma íntegra e reproduzível.
 
 ## 1. Separação de dados
 

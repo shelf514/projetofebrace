@@ -1,7 +1,7 @@
 {
   "name": "AquaSense AI — qualidade da água",
   "short_name": "AquaSense",
-  "description": "Monitoramento da qualidade da água (ESP32 + FastAPI + ML). Projeto FEBRACE.",
+  "description": "Monitoramento da qualidade da água (ESP32 + FastAPI + ML). AquaSense AI.",
   "lang": "pt-BR",
   "display": "standalone",
   "background_color": "#0b1220",

@@ -15,7 +15,7 @@ from app.services import aquarismo_service
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 logger = logging.getLogger("aquasense.chat")
 
-SYSTEM_PROMPT = """Você é o assistente de aquarismo do AquaSense AI (FEBRACE).
+SYSTEM_PROMPT = """Você é o assistente de aquarismo do AquaSense AI.
 Responda APENAS sobre aquarismo (peixes, pH, temperatura, TDS, turbidez, GH, filtragem, trocas parciais, alimentação, compatibilidade, volume).
 Se a pergunta for fora do escopo, diga que só responde sobre aquarismo e redirecione.
 Seja conciso (máx 6 linhas), cite pH/temp/TDS/GH/volume da base quando citar espécie, e lembre que é estimativa — não substitui veterinário/laboratório.

@@ -1,5 +1,5 @@
 // ============================================================
-// AquaSense AI - firmware ESP32 (FEBRACE)
+// AquaSense AI - firmware ESP32
 //
 // Coleta temperaturas (DS18B20), turbidez e TDS, valida as
 // leituras e envia via HTTP POST para o backend FastAPI.

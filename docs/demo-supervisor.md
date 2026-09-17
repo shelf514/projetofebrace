@@ -1,4 +1,4 @@
-# Guia de demonstração — AquaSense AI (FEBRACE)
+# Guia de demonstração — AquaSense AI
 
 Página única para apresentar o projeto sem instalar nada em máquinas/tablets de terceiros.
 
@@ -35,7 +35,7 @@ Página única para apresentar o projeto sem instalar nada em máquinas/tablets 
 - **O que é:** monitoramento da qualidade da água (temperatura, turbidez, TDS) de baixo custo,
   com ESP32 + IA (RandomForest/Isolation Forest) rodando no backend.
 - **Selo DEMO:** todos os dados exibidos durante a apresentação são sintéticos (declarados no
-  próprio dashboard), cumprindo a exigência de transparência da FEBRACE.
+   próprio dashboard), cumprindo a exigência de transparência científica.
 
 ## Se algo der errado
 

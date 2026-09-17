@@ -27,7 +27,7 @@ export function Layout() {
             <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 text-lg font-bold shadow-lg shadow-sky-500/20">💧</span>
             <div>
               <h1 className="text-[15px] font-extrabold tracking-tight leading-none">AQUASENSE AI</h1>
-              <p className="hidden text-[10px] font-medium tracking-widest text-sky-200/70 sm:block">FEBRACE · ÁGUA</p>
+              <p className="hidden text-[10px] font-medium tracking-widest text-sky-200/70 sm:block">QUALIDADE DA ÁGUA</p>
             </div>
           </div>
 
@@ -53,7 +53,7 @@ export function Layout() {
 
           <div className="ml-auto flex items-center gap-2">
             <span className="hidden rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-sky-200/80 backdrop-blur md:inline-flex">
-              FEBRACE · qualidade da água
+              qualidade da água
             </span>
             <div className="hidden sm:block">
               <ApiSettings />

@@ -1,4 +1,4 @@
-package br.org.febrace.aquasense;
+package com.aquasense.app;
 
 import com.getcapacitor.BridgeActivity;
 

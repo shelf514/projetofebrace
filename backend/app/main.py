@@ -83,7 +83,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="AquaSense AI API",
-    description="Monitoramento da qualidade da agua - backend do AquaSense AI (FEBRACE)",
+    description="Monitoramento da qualidade da agua - backend do AquaSense AI",
     version="0.1.0",
     lifespan=lifespan,
 )
