@@ -6,15 +6,6 @@ const ESPECIES = [
   'betta','neon','guppy','molinesia','plati','espada','cascudo','kingui','colisa','matogrosso','coridora','acaradisco','oscar','tetra','paulistinha'
 ];
 
-const SUGESTOES = [
-  'pH ideal para betta?',
-  'TDS 800 está alto para neon?',
-  'posso colocar betta com coridora em 60L?',
-  'volume mínimo para oscar?',
-  'dieta do acaradisco',
-  'GH ideal para guppy?',
-];
-
 function sanitize(text: string): string {
   // Remove markdown residual e normaliza bullets (backend já sanitiza, mas garante no frontend)
   return text
@@ -183,12 +174,6 @@ export function AquarismoChat({ compact = false }: { compact?: boolean }) {
           </div>
         ))}
         {loading && <div role="status" className="self-start rounded-2xl bg-white px-3 py-2 text-xs text-slate-500 shadow-sm dark:bg-slate-800 dark:text-slate-400 animate-pulse">Digitando…</div>}
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {SUGESTOES.map((s) => (
-          <button key={s} type="button" onClick={() => send(s)} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">{s}</button>
-        ))}
       </div>
 
       <div className="mt-3 flex gap-2">
