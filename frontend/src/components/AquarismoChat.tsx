@@ -198,7 +198,7 @@ export function AquarismoChat({ compact = false }: { compact?: boolean }) {
           Enviar
         </button>
       </div>
-      <p className="mt-2 text-[11px] text-slate-400 dark:text-slate-500">Limite 2000 caracteres · 20 msg/min · Se configurar OPENAI_API_KEY, respostas ficam mais naturais (senão, regras locais). Conversa persiste 30 min.</p>
+      <p className="mt-2 text-[11px] text-slate-400 dark:text-slate-500">Limite 2000 caracteres.</p>
     </div>
   );
 }
