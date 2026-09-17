@@ -55,7 +55,7 @@ function renderContent(text: string) {
   );
 }
 
-export function AquarismoChat() {
+export function AquarismoChat({ compact = false }: { compact?: boolean }) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'assistant', content: 'Olá! Sou o assistente de aquarismo do AquaSense 🐠\n\nPergunte sobre pH, temperatura, TDS, turbidez, GH, volume ou compatibilidade por espécie. Ex.: "pH ideal para betta?" ou "posso colocar betta com coridora em 60L?". Ative "usar leitura atual" para diagnóstico automático.\n\nRespostas são estimativas — não substituem veterinário.' }
   ]);
@@ -63,16 +63,30 @@ export function AquarismoChat() {
   const [especie, setEspecie] = useState('');
   const [useSensor, setUseSensor] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [convId, setConvId] = useState<string>(() => localStorage.getItem('aquasense.conv_id') || '');
+  const [convId, setConvId] = useState<string>(() => {
+    try {
+      return localStorage.getItem('aquasense.conv_id') || '';
+    } catch {
+      return '';
+    }
+  });
   const [lastMeta, setLastMeta] = useState<{ sources: string[]; model_used: string } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
+    const el = listRef.current;
+    if (!el) return;
+    if (typeof el.scrollTo === 'function') {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    } else {
+      el.scrollTop = el.scrollHeight;
+    }
   }, [messages, loading]);
 
   useEffect(() => {
-    if (convId) localStorage.setItem('aquasense.conv_id', convId);
+    try {
+      if (convId) localStorage.setItem('aquasense.conv_id', convId);
+    } catch { /* armazenamento indisponível (ex.: teste/APK restrito) */ }
   }, [convId]);
 
   const send = async (text: string = input) => {
@@ -105,7 +119,7 @@ export function AquarismoChat() {
       try { await api.chatHistoryDelete(convId); } catch { /* ignore */ }
     }
     setConvId('');
-    localStorage.removeItem('aquasense.conv_id');
+    try { localStorage.removeItem('aquasense.conv_id'); } catch { /* ignore */ }
     setMessages([{ role: 'assistant', content: 'Conversa limpa. Como posso ajudar com seu aquário? 🐠' }]);
     setLastMeta(null);
   };
@@ -116,7 +130,8 @@ export function AquarismoChat() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className={compact ? 'flex min-h-0 flex-1 flex-col' : 'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900'}>
+      {!compact && (
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">💬 Chat aquarismo — pH, temp, TDS, GH, volume e compatibilidade</h3>
         <div className="flex items-center gap-2">
@@ -124,6 +139,13 @@ export function AquarismoChat() {
           {lastMeta && <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${lastMeta.model_used === 'openai' ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>{lastMeta.model_used}</span>}
         </div>
       </div>
+      )}
+      {compact && lastMeta && (
+        <div className="mb-2 flex items-center gap-2">
+          <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">Offline-first</span>
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${lastMeta.model_used === 'openai' ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>{lastMeta.model_used}</span>
+        </div>
+      )}
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <label htmlFor="chat-especie" className="sr-only">
@@ -147,7 +169,7 @@ export function AquarismoChat() {
         <span className="text-xs text-slate-400 dark:text-slate-500">15 espécies · TTL 30min</span>
       </div>
 
-      <div ref={listRef} role="log" aria-live="polite" aria-label="Mensagens do chat" className="flex max-h-[420px] min-h-[240px] flex-col gap-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+      <div ref={listRef} role="log" aria-live="polite" aria-label="Mensagens do chat" className={compact ? 'flex min-h-[200px] flex-1 flex-col gap-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950' : 'flex max-h-[420px] min-h-[240px] flex-col gap-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950'}>
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${m.role === 'user' ? 'bg-sky-600 text-white dark:bg-sky-500' : 'bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700'}`}>

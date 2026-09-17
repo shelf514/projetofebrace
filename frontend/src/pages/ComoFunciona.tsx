@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 const sensors = [
-  { nome: 'Temperatura (DS18B20)', mede: 'Temperatura da água em °C', como: 'Cristal de quartzo ressoa com a temperatura; ESP32 converte frequência em graus.', detalhe: '15–30 °C em águas naturais. Variação brusca pode indicar efluente.' },
+  { nome: 'Temperatura (DS18B20)', mede: 'Temperatura da água em °C', como: 'Sensor digital 1-Wire com calibração de fábrica (±0,5 °C); converte a temperatura em sinal digital (9–12 bits).', detalhe: '15–30 °C em águas naturais. Variação brusca pode indicar efluente.' },
   { nome: 'Turbidez (óptico)', mede: 'Partículas suspensas em NTU', como: 'LED + fotodiodo: menos luz = mais partículas (argila, areia).', detalhe: 'Até 5 NTU para água potável (Portaria 888/2021).' },
   { nome: 'TDS (condutividade)', mede: 'Sólidos dissolvidos em ppm', como: 'Hastes medem corrente entre si: mais sais = mais corrente.', detalhe: 'Até 1000 mg/L no Brasil. Alto pode indicar esgoto/salinização.' },
 ];

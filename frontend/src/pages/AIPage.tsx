@@ -1,5 +1,4 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { AquarismoChat } from '../components/AquarismoChat';
 import { AquarismoRecomendador, CatalogoEspecies } from '../components/AquarismoRecomendador';
 import { ConfusionMatrixView } from '../components/ConfusionMatrix';
 import { ErrorState, LoadingState } from '../components/States';
@@ -24,7 +23,9 @@ export function AIPage() {
       </div>
       <AquarismoRecomendador />
       <CatalogoEspecies />
-      <AquarismoChat />
+      <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-xs text-sky-800 dark:border-sky-800/30 dark:bg-sky-950/30 dark:text-sky-300">
+        <p><strong>💬 O chat mudou:</strong> agora ele vive no botão flutuante no canto inferior direito, disponível em todas as páginas.</p>
+      </div>
     </div>
   );
 
@@ -47,6 +48,18 @@ export function AIPage() {
   const metrics = status.metrics ?? {};
   const cm = metrics.confusion_matrix as ConfusionMatrix | undefined;
   const regression = ['mae', 'rmse', 'r2'].filter((k) => k in metrics);
+  const isMockModel = /mock|demo|simulado|sint[eé]tico/i.test(status.dataset_origin ?? status.dataset ?? '');
+  const accuracy = typeof metrics.accuracy === 'number' ? metrics.accuracy : null;
+  // Distribuição por classe a partir das colunas da matriz (rótulo real).
+  const classCounts: number[] | null =
+    cm && Array.isArray(cm.matrix) && cm.matrix.length > 0
+      ? cm.matrix[0].map((_, col) => cm.matrix.reduce((sum, row) => sum + (row[col] ?? 0), 0))
+      : null;
+  const minorityShare =
+    classCounts && classCounts.length > 1
+      ? Math.min(...classCounts) / Math.max(1, classCounts.reduce((a, b) => a + b, 0))
+      : null;
+  const showTrivialAccuracyNote = isMockModel && accuracy === 1;
   const featureImportance = (status.feature_importance ?? []).map((item) => ({
     ...item,
     feature: featureLabel(item.feature),
@@ -144,6 +157,16 @@ export function AIPage() {
 
       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800 dark:border-amber-800/30 dark:bg-amber-950/30 dark:text-amber-300">
         <p><strong>Limitação científica:</strong> modelo treinado sobre {(status.dataset ?? 'um dataset').toUpperCase()}{status.dataset_origin?.toLowerCase().includes('mock') && ' (dados sintéticos)'} — previsões estatísticas, não certificam potabilidade.</p>
+        {showTrivialAccuracyNote && (
+          <p className="mt-2">
+            <strong>Nota sobre a acurácia de 100%:</strong> valor artificial do dataset MOCK, que é
+            trivialmente separável{classCounts ? ` (distribuição por classe no teste: ${classCounts.join(' × ')})` : ''}.
+            {minorityShare !== null && minorityShare < 0.1
+              ? ' A classe minoritária é muito rara, então a acurácia não mede desempenho real — use precisão, recall e F1 com cautela.'
+              : ' Não interprete como desempenho real — com dados calibrados os valores cairão para faixas plausíveis.'}{' '}
+            Nunca apresente este resultado como validação científica.
+          </p>
+        )}
       </div>
     </div>
   );

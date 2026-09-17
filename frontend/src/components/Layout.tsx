@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { ApiSettings } from './ApiSettings';
+import { FloatingChat } from './FloatingChat';
 import { useTheme } from './ThemeProvider';
 
 const links = [
@@ -116,6 +117,8 @@ export function Layout() {
           <span className="font-medium">Aviso científico:</span> previsões são saídas estatísticas e não constituem certificação sanitária.
         </div>
       </footer>
+
+      <FloatingChat />
     </div>
   );
 }
