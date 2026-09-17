@@ -65,10 +65,10 @@ jobs:
       - name: Setup Python (PlatformIO)
         uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          python-version: "3.11"
 
       - name: Install PlatformIO
         run: pip install platformio
 
       - name: Build firmware (esp32dev)
-        run: pio run -d firmware/esp32
+        run: python -m platformio run -d firmware/esp32
