@@ -70,5 +70,8 @@ jobs:
       - name: Install PlatformIO
         run: pip install platformio
 
+      - name: Provide placeholder secrets.h (CI only, nao versionado)
+        run: cp firmware/esp32/include/secrets.example.h firmware/esp32/include/secrets.h
+
       - name: Build firmware (esp32dev)
         run: python -m platformio run -d firmware/esp32
