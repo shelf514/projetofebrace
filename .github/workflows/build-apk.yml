@@ -8,7 +8,7 @@ name: Build APK Android
 # Variavel do repositorio (Settings -> Secrets and variables -> Actions -> Variables):
 #   APK_API_URL = URL do backend que o APK usara por padrao,
 #   ex.: https://aquasense-ai.onrender.com
-#   (Sem ela, o app usa http://localhost:8000 e o endereco pode ser trocado no ⚙ do app.)
+#   (Sem ela, o app usa http://localhost:8000.)
 
 on:
   workflow_dispatch:
@@ -76,7 +76,7 @@ jobs:
           TAG="${{ github.ref_name }}"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then TAG="nightly"; fi
           TITLE="AquaSense AI APK ($TAG)"
-          NOTES="APK do dashboard AquaSense AI. Instale no celular/tablet e, se precisar apontar para outro backend, use o icone de engrenagem (settings) dentro do app."
+           NOTES="APK do dashboard AquaSense AI. O endereco do backend e definido no build (APK_API_URL)."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" frontend/android/app/build/outputs/apk/debug/*.apk --clobber
           else

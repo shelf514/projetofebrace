@@ -39,9 +39,9 @@ Sem JDK/Android SDK no seu PC — a compilação roda no GitHub:
 
 1. Em **Settings → Secrets and variables → Actions → Variables**, crie `APK_API_URL` com a URL do site hospedado (ex.: `https://aquasense-ai.onrender.com`) — é o backend que o APK usará por padrão.
 2. Em **Actions → Build APK Android → Run workflow**: o APK é compilado e publicado na release `nightly`, com link direto de download.
-3. Instale no celular. O ícone ⚙ dentro do app permite trocar o endereço do backend sem rebuild (ex.: IP local da rede feira para usar o ESP32 real).
+3. Instale no celular. O APK já vem apontando para o backend configurado em `APK_API_URL` (ex.: o site hospedado ou o IP local da rede da feira para usar o ESP32 real).
 
-> Se você **não usar** o Render, o APK também funciona: instale e informe no ⚙ o endereço do backend rodando em qualquer máquina da rede (`http://<IP_DO_PC>:8000`).
+> Se você **não usar** o Render, gere o APK com `APK_API_URL=http://<IP_DO_PC>:8000` apontando para o backend rodando em qualquer máquina da rede.
 
 ## Arquitetura
 
@@ -158,8 +158,7 @@ npm install
 npm run dev                     # http://localhost:5173
 ```
 
-Para o celular/APK acessar o backend, configure o IP do computador na rede local
-(ou use o ícone ⚙ no próprio dashboard para trocar o endereço sem rebuild).
+Para o celular/APK acessar o backend, gere o build com `VITE_API_URL` apontando para o IP do computador na rede local.
 
 ## Como gerar o APK Android
 
@@ -174,7 +173,7 @@ cd android
 
 Requisitos: JDK 21 (JAVA_HOME) e Android SDK (ANDROID_HOME) com platform android-35/36 e build-tools.
 
-Instale o APK no celular/tablet, abra o ⚙ e informe `http://<IP_DO_PC>:8000`.
+Instale o APK no celular/tablet já configurado com `VITE_API_URL=http://<IP_DO_PC>:8000`.
 O backend deve rodar com `--host 0.0.0.0` para ser acessível na rede local.
 
 ## Como configurar o ESP32

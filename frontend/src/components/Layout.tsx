@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { ApiSettings } from './ApiSettings';
 import { FloatingChat } from './FloatingChat';
 import { useTheme } from './ThemeProvider';
 
@@ -52,12 +51,6 @@ export function Layout() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
-            <span className="hidden rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-sky-200/80 backdrop-blur md:inline-flex">
-              qualidade da água
-            </span>
-            <div className="hidden sm:block">
-              <ApiSettings />
-            </div>
             <button
               type="button"
               onClick={toggle}
@@ -98,9 +91,6 @@ export function Layout() {
                   {link.label}
                 </NavLink>
               ))}
-              <div className="mt-2 border-t border-white/10 pt-3">
-                <ApiSettings />
-              </div>
             </nav>
           </div>
         )}

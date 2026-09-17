@@ -9,12 +9,11 @@ Página única para apresentar o projeto sem instalar nada em máquinas/tablets 
    - **Dados chegando em tempo real**: o servidor gera uma leitura DEMO a cada ~40 s
      (selo "DEMO — dados simulados" no dashboard). Espere alguns segundos e o gráfico
      se moverá sozinho via WebSocket.
-   - Abas: Histórico, Dispositivo, IA (modelo carregado + confusão) e "Como funciona".
-   - O ícone ⚙ troca o endereço do backend sem rebuild (rede local da feira).
+    - Abas: Histórico, Dispositivo, IA (modelo carregado + confusão) e "Como funciona".
 
 2. **APK Android installável** — baixe em GitHub → *Releases* (`nightly`) ou em *Actions → Build APK Android → artifact*:
-   - Instale no smartphone, abra e aponte o ⚙ para o site hospedado
-     (o APK já vem apontando para ele se a variável `APK_API_URL` estiver configurada).
+    - Instale no smartphone (o APK já vem apontando para o site hospedado
+      se a variável `APK_API_URL` estiver configurada).
 
 3. **(Opcional) ESP32 real** — o firmware envia para o mesmo backend hospedado:
    - `firmware/esp32/include/secrets.h` com
