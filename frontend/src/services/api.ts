@@ -2,27 +2,55 @@ import type { ChatRequest, ChatResponse, Device, EspecieFicha, EspecieResumo, He
 
 const STORAGE_KEY = 'aquasense.api_url';
 
-export function getApiBaseUrl(): string {
-  if (typeof localStorage !== 'undefined') {
+function readStoredUrl(): string | null {
+  try {
+    if (typeof localStorage === 'undefined') return null;
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved && saved.trim()) return saved.trim().replace(/\/+$/, '');
+  } catch {
+    /* modo privado/APK restrito: ignora storage */
   }
-  return (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/+$/, '');
+  return null;
+}
+
+export function isValidApiUrl(url: string): boolean {
+  return /^https?:\/\/.+/.test(url);
+}
+
+export function getApiBaseUrl(): string {
+  const saved = readStoredUrl();
+  if (saved && isValidApiUrl(saved)) return saved;
+  const envUrl = (import.meta.env.VITE_API_URL ?? '').trim().replace(/\/+$/, '');
+  if (envUrl && isValidApiUrl(envUrl)) return envUrl;
+  // Device físico não resolve localhost do PC — default do emulador Android.
+  try {
+    if (typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent) && typeof window !== 'undefined' && window.location.protocol.startsWith('capacitor')) {
+      return 'http://10.0.2.2:8000';
+    }
+  } catch { /* ignore */ }
+  return 'http://localhost:8000';
 }
 
 export function setApiBaseUrl(url: string): void {
   const trimmed = url.trim().replace(/\/+$/, '');
-  if (trimmed && !/^https?:\/\/.+/.test(trimmed)) {
+  if (trimmed && !isValidApiUrl(trimmed)) {
     throw new Error('URL deve começar com http:// ou https://');
   }
-  localStorage.setItem(STORAGE_KEY, trimmed);
+  try {
+    localStorage.setItem(STORAGE_KEY, trimmed);
+  } catch {
+    throw new Error('Não foi possível salvar (armazenamento indisponível)');
+  }
+  try {
+    window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }));
+  } catch { /* ignore */ }
 }
 
 export function getApiKey(): string {
   return import.meta.env.VITE_API_KEY ?? '';
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, signal?: AbortSignal): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(init?.headers as Record<string, string> | undefined),
@@ -31,22 +59,51 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (apiKey) headers['X-API-Key'] = apiKey;
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
-  const response = await fetch(`${getApiBaseUrl()}${path}`, { ...init, headers, signal: controller.signal }).finally(() => clearTimeout(timeout));
+  const timeout = setTimeout(() => controller.abort(new DOMException('Tempo esgotado (15s)', 'AbortError')), 15000);
+  const onExternalAbort = () => controller.abort(signal?.reason);
+  signal?.addEventListener('abort', onExternalAbort, { once: true });
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBaseUrl()}${path}`, { ...init, headers, signal: controller.signal });
+  } catch (e) {
+    if (e instanceof DOMException && e.name === 'AbortError') {
+      throw new Error(signal?.aborted ? 'Requisição cancelada' : 'Tempo esgotado (15s)');
+    }
+    throw e instanceof Error ? e : new Error('Erro de rede');
+  } finally {
+    clearTimeout(timeout);
+    signal?.removeEventListener('abort', onExternalAbort);
+  }
 
   if (!response.ok) {
     let detail = `${response.status} ${response.statusText}`;
     try {
-      const body = await response.json();
-      if (body?.detail) detail = typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail);
+      const text = await response.text();
+      if (text) {
+        try {
+          const body = JSON.parse(text) as { detail?: unknown };
+          if (typeof body?.detail === 'string') detail = `${response.status}: ${body.detail}`;
+          else if (body?.detail !== undefined) detail = `${response.status}: ${JSON.stringify(body.detail).slice(0, 300)}`;
+        } catch {
+          detail = `${response.status}: ${text.slice(0, 200)}`;
+        }
+      }
     } catch {
       // corpo nao-JSON
     }
-    throw new Error(detail);
+    const err = new Error(detail) as Error & { status?: number };
+    err.status = response.status;
+    throw err;
   }
 
   if (response.status === 204) return undefined as T;
-  return (await response.json()) as T;
+  const text = await response.text();
+  if (!text) return undefined as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error('Resposta inválida do servidor');
+  }
 }
 
 export const api = {
@@ -85,7 +142,7 @@ export const api = {
     return request<ReadingStats>(`/api/readings/stats${suffix}`);
   },
   mlStatus: () => request<MLStatus>('/api/ml/status'),
-  chat: (payload: ChatRequest) => request<ChatResponse>('/api/chat', { method: 'POST', body: JSON.stringify(payload) }),
+  chat: (payload: ChatRequest, signal?: AbortSignal) => request<ChatResponse>('/api/chat', { method: 'POST', body: JSON.stringify(payload), signal }),
   especies: () => request<{ especies: { especie: string; nome: string; ph_min: number; ph_max: number }[]; total: number }>('/api/chat/especies'),
   chatHistory: (id: string) => request<{ conversation_id: string; messages: { role: string; content: string }[]; count: number }>(`/api/chat/history/${encodeURIComponent(id)}`),
   chatHistoryDelete: (id: string) => request<{ deleted: boolean }>(`/api/chat/history/${encodeURIComponent(id)}`, { method: 'DELETE' }),
@@ -98,8 +155,9 @@ export const api = {
 export function formatTimestamp(iso: string | null | undefined): string {
   if (!iso) return '—';
   const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
+  if (Number.isNaN(date.getTime())) return '—';
   return date.toLocaleString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

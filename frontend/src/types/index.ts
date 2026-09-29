@@ -58,7 +58,7 @@ export interface MLStatus {
   model?: string;
   n_samples?: number;
   labels?: string[] | null;
-  metrics?: Record<string, number | string | ConfusionMatrix>;
+  metrics?: Record<string, number | ConfusionMatrix>;
   overfitting?: OverfittingInfo;
   feature_importance?: FeatureImportance[];
 }
@@ -88,6 +88,7 @@ export interface ChatMessage {
   content: string;
   sources?: string[];
   model_used?: string;
+  isError?: boolean;
 }
 
 export interface ChatRequest {
@@ -104,12 +105,35 @@ export interface ChatRequest {
   companheiros?: string[] | null;
 }
 
+export interface EvidenceChunk {
+  especie: string;
+  nome: string;
+  campo: string;
+  valor: string;
+  fonte: string;
+  texto: string;
+}
+
 export interface ChatResponse {
   reply: string;
   sources: string[];
   model_used: string;
   especie?: string | null;
   conversation_id?: string | null;
+  state?: {
+    especie: string | null;
+    segunda_especie: string | null;
+    volume_l: number | null;
+    ph: number | null;
+    gh: number | null;
+    temp: number | null;
+    tds: number | null;
+    turbidity: number | null;
+    companheiros: string[];
+    last_intent: string | null;
+  } | null;
+  followup?: string | null;
+  evidence?: EvidenceChunk[] | null;
 }
 
 export type EspecieOption = { especie: string; nome: string };

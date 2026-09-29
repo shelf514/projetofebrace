@@ -1,0 +1,59 @@
+{"message": "pH ideal para betta?", "expect": {"especie": "betta", "needles": ["6.5", "7.5"]}}
+{"message": "e para neon?", "conversation": "golden-neon", "setup": [{"message": "pH ideal para betta?"}], "expect": {"especie": "neon", "needles": ["6.0", "7.0"]}}
+{"message": "e ele come o quê?", "conversation": "golden-dieta", "setup": [{"message": "pH para neon?"}], "expect": {"especie": "neon", "needles": ["aliment", "art"]}}
+{"message": "posso colocar betta com coridora em 60L?", "expect": {"especie": "betta", "needles": ["compat"]}}
+{"message": "bettas com kinguio é ok?", "expect": {"especie": "betta", "needles": ["compat", "kingui"]}}
+{"message": "e em 60L?", "conversation": "golden-vol", "setup": [{"message": "pH ideal para betta?"}], "expect": {"especie": "betta", "state_volume": 60}}
+{"message": "minha água está boa para betta?", "especie": "betta", "sensor": true, "expect": {"needles": ["diagnóstico"]}}
+{"message": "TDS 800 alto para neon?", "expect": {"especie": "neon", "needles": ["tds"]}}
+{"message": "qual receita de bolo?", "expect": {"needles": ["só respondo sobre aquarismo"]}}
+{"message": "compatível?", "expect": {"followup": true, "needles": ["segunda espécie"]}}
+{"message": "GH ideal para guppy?", "expect": {"especie": "guppy", "needles": ["gh"]}}
+{"message": "temperatura ideal para kingui", "expect": {"especie": "kingui", "needles": ["18"]}}
+{"message": "turbidez alta no aquario?", "expect": {"needles": ["15 NTU"]}}
+{"message": "volume mínimo para oscar?", "expect": {"especie": "oscar", "needles": ["250L"]}}
+{"message": "dieta do betta?", "expect": {"especie": "betta", "needles": ["artêmia"]}}
+{"message": "pH 7.0 ideal para acarabandeira?", "expect": {"especie": "acarabandeira", "needles": ["6.0", "7.5"]}}
+{"message": "posso colocar ramirezi com neon?", "expect": {"especie": "ramirezi", "needles": ["compat", "neon"]}}
+{"message": "barbo tigre com betta é compatível?", "expect": {"especie": "barbotigre", "needles": ["incompat"]}}
+{"message": "camarão red cherry com betta?", "expect": {"especie": "camarao", "needles": ["incompat"]}}
+{"message": "tanictis aguenta água fria?", "expect": {"especie": "tanictis", "needles": ["20"]}}
+{"message": "rasbora estrela pH?", "expect": {"especie": "rasbora", "needles": ["5.0", "7.0"]}}
+{"message": "tricogaster chuna com colisa?", "expect": {"especie": "tricogaster", "needles": ["compat"]}}
+{"message": "rodostomo com neon?", "expect": {"especie": "rodostomo", "needles": ["compat"]}}
+{"message": "labeo bicolor precisa de quantos litros?", "expect": {"especie": "labeo", "needles": ["120L"]}}
+{"message": "botia palhaço tamanho adulto?", "expect": {"especie": "botia", "needles": ["30cm"]}}
+{"message": "carpa koi com kingui?", "expect": {"especie": "carpakoi", "needles": ["compat"]}}
+{"message": "acará anão pH?", "expect": {"especie": "acaraano", "needles": ["5.0", "7.0"]}}
+{"message": "tetra cardi com neon?", "expect": {"especie": "tetacardi", "needles": ["compat"]}}
+{"message": "cascudo zebra temperatura?", "expect": {"especie": "cascudozebra", "needles": ["26", "30"]}}
+{"message": "guppy endler com guppy?", "expect": {"especie": "guppyendler", "needles": ["compat"]}}
+{"message": "como ciclar o aquário?", "expect": {"needles": ["ciclagem", "amônia"]}}
+{"message": "quanto tempo leva a ciclagem?", "expect": {"needles": ["4", "8", "semanas"]}}
+{"message": "o que é new tank syndrome?", "expect": {"needles": ["new tank", "síndrome", "amônia"]}}
+{"message": "fazer troca parcial de água", "expect": {"needles": ["25%", "semana"]}}
+{"message": "com que frequência trocar a água?", "expect": {"needles": ["25%", "seman"]}}
+{"message": "meu peixe está com pontos brancos", "expect": {"needles": ["íctio", "28", "30"]}}
+{"message": "peixe com fungo", "expect": {"needles": ["fungo", "antifúngico"]}}
+{"message": "como testar o pH da água?", "expect": {"needles": ["parâmetros", "ph"]}}
+{"message": "água dura ou mole para betta?", "expect": {"needles": ["mole", "macia"]}}
+{"message": "posso usar água da torneira?", "expect": {"needles": ["declorada", "condicionador", "cloro"]}}
+{"message": "aquário de 60L para betta", "expect": {"especie": "betta", "needles": ["20L"]}}
+{"message": "espelho para betta?", "expect": {"especie": "betta", "needles": ["estresse", "territorial"]}}
+{"message": "plantas para aquário", "expect": {"needles": ["plantas", "substrato"]}}
+{"message": "iluminação do aquário", "expect": {"needles": ["led", "iluminação", "luz"]}}
+{"message": "vazão do filtro para 100L", "expect": {"needles": ["400", "600", "L/h"]}}
+{"message": "limpar filtro com torneira?", "expect": {"needles": ["torneira", "cloro", "bactérias"]}}
+{"message": "alimentar peixe 1x por dia", "expect": {"needles": ["1-2x", "2 min"]}}
+{"message": "peixe jejum", "expect": {"needles": ["jejum", "1x", "semana"]}}
+{"message": "quarentena de peixes novos", "expect": {"needles": ["quarentena", "2 semanas"]}}
+{"message": "acará bandeira com neon?", "expect": {"especie": "acarabandeira", "needles": ["compat"]}}
+{"message": "molinesia com plati?", "expect": {"especie": "molinesia", "needles": ["compat"]}}
+{"message": "espada com guppy?", "expect": {"especie": "espada", "needles": ["compat"]}}
+{"message": "cascudo com oscar?", "expect": {"especie": "cascudo", "needles": ["incompat"]}}
+{"message": "colisa com betta?", "expect": {"especie": "colisa", "needles": ["incompat"]}}
+{"message": "matogrosso com tetra?", "expect": {"especie": "matogrosso", "needles": ["compat"]}}
+{"message": "coridora com acará disco?", "expect": {"especie": "coridora", "needles": ["compat"]}}
+{"message": "oscar com neon?", "expect": {"especie": "oscar", "needles": ["incompat"]}}
+{"message": "tetra com kingui?", "expect": {"especie": "tetra", "needles": ["incompat"]}}
+{"message": "paulistinha com oscar?", "expect": {"especie": "paulistinha", "needles": ["incompat"]}}

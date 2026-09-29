@@ -1,0 +1,58 @@
+[
+  {
+    "id": "ciclagem",
+    "titulo": "Ciclagem do aquário (nitrogen cycle)",
+    "conteudo": "A ciclagem estabelece bactérias nitrificantes que convertem amônia (NH3) em nitrito (NO2) e depois em nitrato (NO3). Processo: 1) Amônia sobe após 3 dias de peixes/alimentação; 2) Nitrito sobe após 1-2 semanas; 3) Nitrato aparece após 4-8 semanas. Amônia e nitrito devem estar em 0 ppm antes de adicionar peixes. Nitrato deve ficar abaixo de 20-40 ppm com trocas parciais. Fonte: Aquarium Science — Nitrogen Cycle; UF/IFAS FA031.",
+    "fonte": "Aquarium Science — Nitrogen Cycle; UF/IFAS FA031",
+    "keywords": ["ciclo", "ciclagem", "amonia", "nitrito", "nitrato", "bacteria", "nova", "novo", "montar", "montagem"]
+  },
+  {
+    "id": "tpa",
+    "titulo": "Troca parcial de água (TPA)",
+    "conteudo": "TPA remove nitrato acumulado e repõe minerais. Recomendação: 25% semanal para aquários comunitários, 50% semanal para ciclagem ou alta carga. Use água declorada (condicionador), mesma temperatura (±1°C) e mesmo pH (±0.2). Nunca troque 100% — remove bactérias benéficas e estressa peixes. Fonte: Aqueon — Freshwater Aquarium Water Quality; LiveAquaria — Ammonia & Nitrogen Cycle.",
+    "fonte": "Aqueon — Freshwater Aquarium Water Quality; LiveAquaria",
+    "keywords": ["troca", "tpa", "parcial", "agua", "trocar", "mudar", "sifao", "sifonagem"]
+  },
+  {
+    "id": "diagnostico",
+    "titulo": "Diagnóstico de água do aquário",
+    "conteudo": "Parâmetros ideais para aquário comunitário: amônia 0 ppm, nitrito 0 ppm, nitrato <20-40 ppm, pH 6.5-7.5, temperatura 24-26°C, turbidez <15 NTU, TDS <500 ppm. Amônia >0.25 ppm = emergência (troca 50% imediata). Nitrito >0.5 ppm = emergência. Nitrato >40 ppm = troca 25-50%. pH instável mata mais que pH fora do ideal. Fonte: UF/IFAS FA031; Portaria GM/MS 888/2021.",
+    "fonte": "UF/IFAS FA031; Portaria GM/MS 888/2021",
+    "keywords": ["diagnostico", "diagnóstico", "agua", "agua boa", "agua ruim", "teste", "testar", "parametro", "parâmetro", "amonia", "nitrito", "nitrato"]
+  },
+  {
+    "id": "newtank",
+    "titulo": "New Tank Syndrome",
+    "conteudo": "New Tank Syndrome (síndrome do tanque novo) ocorre quando peixes são adicionados antes da ciclagem completar. Sintomas: peixes ofegantes, letárgicos, morte súbita. Causa: amônia/nitrito altos sem bactérias nitrificantes suficientes. Prevenção: ciclar 4-8 semanas antes de adicionar peixes, ou usar bactérias em garrafa + poucos peixes resistentes. Tratamento: trocas diárias de 25-50%, condicionador de amônia, reduzir alimentação. Fonte: Aqueon — The Nitrogen Cycle; Aquarium Science.",
+    "fonte": "Aqueon — The Nitrogen Cycle; Aquarium Science",
+    "keywords": ["novo", "nova", "montar", "montagem", "primeiro", "iniciante", "sindrome", "new tank", "peixe morrendo", "peixe morto"]
+  },
+  {
+    "id": "alimentacao",
+    "titulo": "Alimentação de peixes",
+    "conteudo": "Regra geral: alimente 1-2x/dia, só o que consomem em 2-3 minutos. Excesso = amônia + turbidez + algas. Varie: flakes/pellets (base) + vivo/congelado (artêmia, dáfnia, tubifex) 2x/semana + vegetais (abobrinha, ervilha) para herbívoros. Jejum de 1x/semana ajuda na digestão. Fonte: Aqueon — Freshwater Aquarium Water Quality.",
+    "fonte": "Aqueon — Freshwater Aquarium Water Quality",
+    "keywords": ["alimentar", "alimentação", "comida", "ração", "racao", "flakes", "pellets", "artemia", "darfnia", "tubifex", "vegetal", "abobrinha"]
+  },
+  {
+    "id": "filtragem",
+    "titulo": "Filtragem do aquário",
+    "conteudo": "3 tipos: mecânica (remove partículas), química (carvão ativado, remove odores/medicamentos), biológica (bactérias nitrificantes). Vazão ideal: 4-6x o volume/hora (ex.: 100L = 400-600 L/h). Limpeza: só com água do aquário (nunca torneira — cloro mata bactérias). Trocar mídia mecânica mensal, química a cada 3-4 semanas. Fonte: Aqueon — Freshwater Aquarium Water Quality.",
+    "fonte": "Aqueon — Freshwater Aquarium Water Quality",
+    "keywords": ["filtro", "filtragem", "filtrar", "vazao", "vazão", "carvao", "carvão", "midia", "mídia", "esponja", "bomba"]
+  },
+  {
+    "id": "ph",
+    "titulo": "pH do aquário",
+    "conteudo": "pH mede acidez/alcalinidade (0-14). Faixas: amazônicos 5.0-6.5, comunitários 6.5-7.5, vivíparos 7.0-8.2, africanos 7.5-8.5. Estabilidade vale mais que valor exato — variação brusca >0.2/dia estressa peixes. Ajuste: para baixo (turfa, água deionizada, CO2), para cima (calcário, aragonita, bicarbonato). Nunca ajuste mais de 0.2/dia. Fonte: Seriously Fish — pH, dGH and °C explained.",
+    "fonte": "Seriously Fish — pH, dGH and °C explained",
+    "keywords": ["ph", "acido", "ácido", "alcalino", "alcalinidade", "acidez", "turfa", "calcario", "calcário", "agua dura", "agua mole"]
+  },
+  {
+    "id": "doencas",
+    "titulo": "Doenças comuns de peixes",
+    "conteudo": "Íctio (pontos brancos): aumentar temp para 28-30°C + sal (1g/L) ou medicamento. Fungo (algodão): melhorar água + antifúngico. Hidropsia (barriga inchada): isolar + antibiótico. Prevenção: quarentena 2 semanas para peixes novos, não superalimentar, manter água limpa. Fonte: Seriously Fish — Disease diagnosis; Aquarium Science.",
+    "fonte": "Seriously Fish — Disease diagnosis; Aquarium Science",
+    "keywords": ["doenca", "doença", "doente", "ictio", "íctio", "fungo", "hidropsia", "pontos brancos", "tratamento", "remedio", "remédio", "quarentena"]
+  }
+]
