@@ -28,6 +28,13 @@ export function getApiBaseUrl(): string {
       return 'http://10.0.2.2:8000';
     }
   } catch { /* ignore */ }
+  // Mesma origem: no Render (VITE_API_URL vazio) e no `npm run dev` (proxy do Vite),
+  // a API está na mesma origem da página. Evita apontar para localhost do visitante.
+  try {
+    if (typeof window !== 'undefined' && typeof window.location?.origin === 'string' && window.location.origin.startsWith('http')) {
+      return window.location.origin.replace(/\/+$/, '');
+    }
+  } catch { /* ignore */ }
   return 'http://localhost:8000';
 }
 
