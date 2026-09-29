@@ -1,10 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ESPECIES } from '../data/especies';
 import { api } from '../services/api';
-import type { EspecieFicha, EspecieResumo, RecomendarResponse } from '../types';
-
-const ESPECIES = [
-  'betta','neon','guppy','molinesia','plati','espada','cascudo','kingui','colisa','matogrosso','coridora','acaradisco','oscar','tetra','paulistinha'
-];
+import type { EspecieFicha, EspecieResumo, RecomendarRequest, RecomendarResponse } from '../types';
 
 function Badge({ children, tone = 'neutral' }: { children: React.ReactNode; tone?: 'ok' | 'warning' | 'critical' | 'neutral' }) {
   const cls = {
@@ -19,23 +16,21 @@ function Badge({ children, tone = 'neutral' }: { children: React.ReactNode; tone
 export function AquarismoRecomendador() {
   const [especie, setEspecie] = useState('betta');
   const [volume, setVolume] = useState('');
-  const [companheiros, setCompanheiros] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<RecomendarResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const toggleComp = (e: string) => {
-    setCompanheiros((prev) => (prev.includes(e) ? prev.filter((x) => x !== e) : [...prev, e]));
-  };
 
   const recomendar = async () => {
     setLoading(true);
     setError(null);
     setResult(null);
     try {
-      const payload: any = { especie };
-      if (volume.trim()) payload.volume_l = Number(volume);
-      if (companheiros.length) payload.companheiros = companheiros;
+      const payload: RecomendarRequest = { especie };
+      if (volume.trim()) {
+        const v = Number(volume);
+        if (!Number.isFinite(v) || v <= 0) throw new Error('Volume deve ser maior que 0');
+        payload.volume_l = v;
+      }
       const res = await api.aquarismoRecomendar(payload);
       setResult(res);
     } catch (e) {
@@ -49,7 +44,7 @@ export function AquarismoRecomendador() {
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">🐟 Recomendação por espécie — volume, parâmetros e compatibilidade</h3>
-        <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">Fase 1 · 15 espécies</span>
+        <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">30 espécies</span>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -63,23 +58,6 @@ export function AquarismoRecomendador() {
           <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Volume do aquário (L)</span>
           <input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="Ex.: 60" type="number" min={1} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" />
         </label>
-      </div>
-
-      <div className="mt-3">
-        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Companheiros (opcional)</span>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {ESPECIES.filter((e) => e !== especie).map((e) => (
-            <button
-              key={e}
-              type="button"
-              onClick={() => toggleComp(e)}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${companheiros.includes(e) ? 'border-sky-500 bg-sky-600 text-white dark:border-sky-400 dark:bg-sky-500' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}
-            >
-              {e}
-            </button>
-          ))}
-        </div>
-        {companheiros.length > 0 && <p className="mt-1 text-xs text-slate-400">Selecionados: {companheiros.join(', ')} · <button onClick={() => setCompanheiros([])} className="underline">limpar</button></p>}
       </div>
 
       <button onClick={recomendar} disabled={loading} className="mt-4 w-full rounded-xl bg-sky-600 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-sky-700 disabled:opacity-40 dark:bg-sky-500 sm:w-auto sm:px-8">
@@ -153,17 +131,28 @@ export function CatalogoEspecies() {
   const [data, setData] = useState<EspecieResumo[] | null>(null);
   const [selected, setSelected] = useState<EspecieFicha | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [opening, setOpening] = useState<string | null>(null);
+  const reqRef = useRef(0);
 
   useEffect(() => {
-    api.aquarismoEspecies().then((r) => setData(r.especies)).catch((e) => setError(e instanceof Error ? e.message : String(e)));
+    let mounted = true;
+    const ctrl = new AbortController();
+    api.aquarismoEspecies()
+      .then((r) => { if (mounted && !ctrl.signal.aborted) setData(r.especies); })
+      .catch((e) => { if (mounted) setError(e instanceof Error ? e.message : String(e)); });
+    return () => { mounted = false; ctrl.abort(); };
   }, []);
 
   const open = async (especie: string) => {
+    const id = ++reqRef.current;
+    setOpening(especie);
     try {
       const f = await api.aquarismoFicha(especie);
-      setSelected(f);
+      if (reqRef.current === id) setSelected(f);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      if (reqRef.current === id) setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      if (reqRef.current === id) setOpening(null);
     }
   };
 
@@ -172,12 +161,12 @@ export function CatalogoEspecies() {
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">📚 Catálogo — 15 espécies na base</h3>
+      <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">📚 Catálogo — 30 espécies na base</h3>
       <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Clique para ver ficha completa (pH, temp, TDS, GH, volume, dieta, compatíveis).</p>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {data.map((e) => (
-          <button key={e.especie} onClick={() => open(e.especie)} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-left hover:bg-white hover:shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700">
-            <div className="text-xs font-bold text-slate-800 dark:text-slate-100">{e.nome}</div>
+          <button key={e.especie} onClick={() => open(e.especie)} disabled={opening === e.especie} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-left hover:bg-white hover:shadow-sm disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700">
+            <div className="text-xs font-bold text-slate-800 dark:text-slate-100">{e.nome}{opening === e.especie ? '…' : ''}</div>
             <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">pH {e.ph_min}-{e.ph_max} · {e.temp_min}-{e.temp_max}°C</div>
             <div className="text-[11px] text-slate-500 dark:text-slate-400">TDS ≤{e.tds_max} · {e.volume_min_l}L · {e.dificuldade}</div>
           </button>
