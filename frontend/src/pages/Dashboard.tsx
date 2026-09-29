@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { AnomalyBadge, StatusBadge } from '../components/Badges';
 import { ErrorState, LoadingState } from '../components/States';
 import { PeriodFilter } from '../components/PeriodFilter';
@@ -51,10 +51,12 @@ export function Dashboard() {
     return periodRange(period, s, e);
   }, [period, customStart, customEnd]);
 
-  const { data: history, error: historyError, refresh: refreshHistory } = usePolling(
-    () => api.history({ start: start.toISOString(), end: end.toISOString(), limit: 2000 }),
-    15000,
+  const historyLimit = period === '24h' ? 500 : period === '7d' ? 1000 : 2000;
+  const fetchHistory = useCallback(
+    () => api.history({ start: start.toISOString(), end: end.toISOString(), limit: historyLimit }),
+    [start, end, historyLimit],
   );
+  const { data: history, error: historyError, refresh: refreshHistory } = usePolling(fetchHistory, 15000);
 
   const error = healthError ?? latestError ?? historyError ?? devicesError;
 
@@ -69,7 +71,7 @@ export function Dashboard() {
 
   const refreshAll = () => {
     void refreshHealth();
-    void refreshLatest();
+    if (!wsConnected) void refreshLatest();
     void refreshHistory();
     void refreshDevices();
   };
@@ -97,7 +99,7 @@ export function Dashboard() {
   }, [latest, mlStatus]);
 
   const isDemoDevice = latest?.device_id === 'AQUASENSE-DEMO' || latest?.device_id === 'AQUASENSE-SIM';
-  const isDemoModel = /mock|demo|simulado/i.test(mlStatus?.dataset_origin ?? '');
+  const isDemoModel = /mock|demo|simulado|sint[eé]tico/i.test(`${mlStatus?.dataset_origin ?? ''} ${mlStatus?.dataset ?? ''}`);
 
   return (
     <div className="space-y-6">
@@ -133,6 +135,11 @@ export function Dashboard() {
       </div>
 
       {error && !latest && <ErrorState message={error} onRetry={refreshAll} />}
+      {error && latest && (
+        <div role="alert" className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800 dark:border-amber-800/30 dark:bg-amber-950/30 dark:text-amber-300">
+          Parcialmente indisponível: {error} — exibindo última leitura em cache.
+        </div>
+      )}
 
       {/* Status bar */}
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -164,7 +171,7 @@ export function Dashboard() {
       </div>
 
       {/* Métricas principais */}
-      <div className="animate-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="animate-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-live="polite">
         <StatCard
           label="Temperatura"
           value={latest ? latest.temperature.toFixed(1) : '—'}
@@ -222,7 +229,7 @@ export function Dashboard() {
                 <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                   <div
                     className={`h-full rounded-full transition-all duration-700 ease-out ${factor.direction === 'neutro' ? 'bg-slate-400 dark:bg-slate-500' : factor.direction === 'elevou' ? 'bg-amber-500' : 'bg-sky-500'}`}
-                    style={{ width: `${Math.min(100, Math.abs(factor.score))}%` }}
+                    style={{ width: `${Math.abs(factor.score)}%` }}
                   />
                 </div>
                 <span className={`w-28 text-right text-xs font-medium ${factor.direction === 'neutro' ? 'text-slate-400' : factor.direction === 'elevou' ? 'text-amber-700 dark:text-amber-300' : 'text-sky-700 dark:text-sky-300'}`}>
@@ -266,10 +273,6 @@ export function Dashboard() {
             <SensorChart data={series.tds} color="#10b981" unit="ppm" label="TDS" reference={{ value: 1000, label: '1000 mg/L' }} />
           </div>
         )}
-      </div>
-
-      <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 text-xs leading-relaxed text-amber-800 dark:border-amber-800/30 dark:from-amber-950/30 dark:to-orange-950/20 dark:text-amber-300">
-        <strong>Aviso científico:</strong> previsões são estatísticas, não certificam potabilidade. Use análises laboratoriais para decisões sanitárias.
       </div>
     </div>
   );
