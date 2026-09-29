@@ -1,33 +1,39 @@
+import { memo } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { AquarismoRecomendador, CatalogoEspecies } from '../components/AquarismoRecomendador';
 import { ConfusionMatrixView } from '../components/ConfusionMatrix';
 import { ErrorState, LoadingState } from '../components/States';
 import { StatCard } from '../components/StatCard';
+import { useTheme } from '../components/ThemeProvider';
 import { usePolling } from '../hooks/usePolling';
 import { api } from '../services/api';
 import { featureLabel } from '../services/format';
 import type { ConfusionMatrix } from '../types';
 
-export function AIPage() {
-  const { data: status, error, refresh } = usePolling(() => api.mlStatus(), 30000);
-  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-
-  if (error) return <ErrorState message={error} onRetry={refresh} />;
-  if (!status) return <LoadingState message="Carregando informações do modelo..." />;
-
-  const renderAquarismo = () => (
+const AquarismoSection = memo(function AquarismoSection() {
+  return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 to-cyan-50 p-4 dark:border-sky-800/30 dark:from-sky-950/20 dark:to-cyan-950/20">
         <h2 className="text-sm font-extrabold tracking-tight text-sky-900 dark:text-sky-100">🐠 Aquarismo — IA por espécie</h2>
-        <p className="mt-1 text-xs text-sky-700 dark:text-sky-300">Recomendações de pH, temperatura, TDS, GH, volume e compatibilidade para 15 espécies. Chat offline-first com memória 30 min. Fonte: aquarismo.json + diagnostico dos sensores.</p>
+        <p className="mt-1 text-xs text-sky-700 dark:text-sky-300">Recomendações de pH, temperatura, TDS, GH, volume e compatibilidade para 30 espécies. Chat offline-first com memória 30 min. Fonte: aquarismo.json + diagnostico dos sensores.</p>
       </div>
       <AquarismoRecomendador />
       <CatalogoEspecies />
-      <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-xs text-sky-800 dark:border-sky-800/30 dark:bg-sky-950/30 dark:text-sky-300">
-        <p><strong>💬 O chat mudou:</strong> agora ele vive no botão flutuante no canto inferior direito, disponível em todas as páginas.</p>
-      </div>
     </div>
   );
+});
+
+function metricPercent(value: unknown): string {
+  return typeof value === 'number' && Number.isFinite(value) ? (value * 100).toFixed(1) : '—';
+}
+
+export function AIPage() {
+  const { data: status, error, refresh } = usePolling(() => api.mlStatus(), 30000);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  if (error) return <ErrorState message={error} onRetry={refresh} />;
+  if (!status) return <LoadingState message="Carregando informações do modelo..." />;
 
   if (!status.model_loaded) {
     return (
@@ -40,7 +46,7 @@ export function AIPage() {
           <p className="font-semibold">Nenhum modelo treinado ainda.</p>
           <p className="mt-1">Treine com <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs dark:bg-slate-800">python -m ml.train</code> ou use o dataset demo.</p>
         </div>
-        {renderAquarismo()}
+        <AquarismoSection />
       </div>
     );
   }
@@ -50,7 +56,8 @@ export function AIPage() {
   const regression = ['mae', 'rmse', 'r2'].filter((k) => k in metrics);
   const isMockModel = /mock|demo|simulado|sint[eé]tico/i.test(status.dataset_origin ?? status.dataset ?? '');
   const accuracy = typeof metrics.accuracy === 'number' ? metrics.accuracy : null;
-  // Distribuição por classe a partir das colunas da matriz (rótulo real).
+  // Matriz backend: linhas = classe real, colunas = classe prevista (ver caption em ConfusionMatrixView).
+  // classCounts soma por coluna = distribuição prevista no teste.
   const classCounts: number[] | null =
     cm && Array.isArray(cm.matrix) && cm.matrix.length > 0
       ? cm.matrix[0].map((_, col) => cm.matrix.reduce((sum, row) => sum + (row[col] ?? 0), 0))
@@ -78,7 +85,7 @@ export function AIPage() {
       </div>
 
       {/* Aquarismo vem primeiro na aba IA — entrega principal do app */}
-      {renderAquarismo()}
+      <AquarismoSection />
 
       <div className="border-t border-slate-200 pt-6 dark:border-slate-800">
         <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">Modelo de qualidade da água (ML)</h3>
@@ -106,10 +113,10 @@ export function AIPage() {
           <h3 className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Métricas</h3>
           {cm ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <StatCard label="Acurácia" value={((metrics.accuracy as number) * 100).toFixed(1)} unit="%" tone="ok" />
-              <StatCard label="Precisão" value={((metrics.precision as number) * 100).toFixed(1)} unit="%" tone="neutral" />
-              <StatCard label="Recall" value={((metrics.recall as number) * 100).toFixed(1)} unit="%" tone="neutral" />
-              <StatCard label="F1-score" value={((metrics.f1_score as number) * 100).toFixed(1)} unit="%" tone="neutral" />
+              <StatCard label="Acurácia" value={metricPercent(metrics.accuracy)} unit="%" tone="ok" />
+              <StatCard label="Precisão" value={metricPercent(metrics.precision)} unit="%" tone="neutral" />
+              <StatCard label="Recall" value={metricPercent(metrics.recall)} unit="%" tone="neutral" />
+              <StatCard label="F1-score" value={metricPercent(metrics.f1_score)} unit="%" tone="neutral" />
             </div>
           ) : regression.length === 3 ? (
             <div className="grid grid-cols-3 gap-3">
@@ -147,7 +154,7 @@ export function AIPage() {
                   <XAxis type="number" tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }} tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }} />
                   <YAxis type="category" dataKey="feature" tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} width={120} axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }} tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }} />
                   <Tooltip contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#ffffff', border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`, borderRadius: '12px', color: isDark ? '#f1f5f9' : '#0f172a' }} formatter={(value) => [Number(value).toFixed(4), 'Importância']} />
-                  <Bar dataKey="importance" fill={isDark ? '#38bdf8' : '#0284c7'} radius={[0, 8, 8, 0]} isAnimationActive animationDuration={700} />
+                  <Bar dataKey="importance" fill={isDark ? '#38bdf8' : '#0284c7'} radius={[0, 8, 8, 0]} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
