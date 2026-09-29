@@ -15,15 +15,42 @@ class ChatRequest(BaseModel):
     companheiros: list[str] | None = Field(default=None, max_length=10, description="Espécies companheiras para checar compatibilidade")
 
 
+class DialogueState(BaseModel):
+    especie: str | None = None
+    segunda_especie: str | None = None
+    volume_l: float | None = None
+    ph: float | None = None
+    gh: float | None = None
+    temp: float | None = None
+    tds: float | None = None
+    turbidity: float | None = None
+    companheiros: list[str] = Field(default_factory=list)
+    last_intent: str | None = None
+
+
+class EvidenceChunk(BaseModel):
+    especie: str
+    nome: str
+    campo: str
+    valor: str
+    fonte: str
+    texto: str
+
+
 class ChatResponse(BaseModel):
     reply: str
     sources: list[str] = Field(default_factory=list)
-    model_used: str = Field(description="regras | openai")
+    model_used: str = Field(description="regras | slm-local | openai")
     especie: str | None = None
     conversation_id: str | None = None
+    state: DialogueState | None = None
+    followup: str | None = None
+    evidence: list[EvidenceChunk] = Field(default_factory=list)
 
 
 class ChatHistoryResponse(BaseModel):
     conversation_id: str
     messages: list[dict]
     count: int
+    state: DialogueState | None = None
+    evidence: list[EvidenceChunk] = Field(default_factory=list)

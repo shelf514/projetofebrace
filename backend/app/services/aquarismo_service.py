@@ -213,7 +213,16 @@ def recomendar(
     }
 
 
-def build_context_message(especie: str | None, temperature, turbidity, tds, ph: float | None = None) -> str:
+def build_context_message(
+    especie: str | None,
+    temperature,
+    turbidity,
+    tds,
+    ph: float | None = None,
+    gh: float | None = None,
+    volume_l: float | None = None,
+    companheiros: list[str] | None = None,
+) -> str:
     parts = []
     if especie:
         fish = get_fish(especie)
@@ -224,8 +233,12 @@ def build_context_message(especie: str | None, temperature, turbidity, tds, ph: 
             )
         else:
             parts.append(f"Espécie '{especie}' não encontrada na base. Responda com orientações gerais de aquarismo e sugira espécies similares entre {', '.join(list_especies()[:8])}.")
-    if any(v is not None for v in (temperature, tds, turbidity, ph)):
-        parts.append(f"Leitura atual do aquário: temp={temperature}°C, turbidez={turbidity} NTU, TDS={tds} ppm, pH={ph}.")
-        diag = diagnose(temperature, turbidity, tds, especie, ph=ph)
+    if any(v is not None for v in (temperature, tds, turbidity, ph, gh)):
+        parts.append(f"Leitura atual do aquário: temp={temperature}°C, turbidez={turbidity} NTU, TDS={tds} ppm, pH={ph}, GH={gh}.")
+        diag = diagnose(temperature, turbidity, tds, especie, ph=ph, gh=gh)
         parts.append("Diagnóstico rápido: " + " | ".join(diag["alertas"]))
+    if volume_l is not None or companheiros:
+        comp = f" Volume informado: {volume_l:g}L." if volume_l is not None else ""
+        comps = f" Companheiros: {', '.join(companheiros)}." if companheiros else ""
+        parts.append(f"Contexto do aquário:{comp}{comps}")
     return "\n".join(parts) if parts else "Sem contexto de sensores. Responda com base em aquarismo geral."
