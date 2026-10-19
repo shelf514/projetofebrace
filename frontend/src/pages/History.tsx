@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnomalyBadge } from '../components/Badges';
 import { ErrorState, LoadingState } from '../components/States';
 import { api, formatTimestamp } from '../services/api';
@@ -7,68 +7,97 @@ import type { Reading } from '../types';
 
 const PAGE_SIZE = 25;
 
+function useDebounced(value: string, ms = 300): string {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return debounced;
+}
+
 export function History() {
   const [data, setData] = useState<Reading[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
-  const [sortDesc, setSortDesc] = useState(true);
   const [anomalyOnly, setAnomalyOnly] = useState(false);
   const [predictionFilter, setPredictionFilter] = useState('');
   const [deviceId, setDeviceId] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const [exportNote, setExportNote] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
 
-  const load = async () => {
+  const debouncedDevice = useDebounced(deviceId);
+  const debouncedPrediction = useDebounced(predictionFilter);
+
+  const load = useCallback(async () => {
+    const id = ++requestIdRef.current;
     setError(null);
+    setLoading(true);
     try {
       const readings = await api.readings({
-        device_id: deviceId || undefined,
+        device_id: debouncedDevice || undefined,
         anomaly: anomalyOnly ? true : undefined,
-        prediction: predictionFilter || undefined,
+        prediction: debouncedPrediction || undefined,
         limit: PAGE_SIZE,
         offset: page * PAGE_SIZE,
       });
+      if (requestIdRef.current !== id) return; // resposta antiga: descarta (race)
       setData(readings);
     } catch (e) {
+      if (requestIdRef.current !== id) return;
       setError(e instanceof Error ? e.message : 'Erro ao carregar histórico');
+    } finally {
+      if (requestIdRef.current === id) setLoading(false);
     }
-  };
+  }, [page, anomalyOnly, debouncedDevice, debouncedPrediction]);
 
   useEffect(() => {
     void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, anomalyOnly, predictionFilter, deviceId]);
+  }, [load]);
 
-  const rows = useMemo(() => {
-    const sorted = [...(data ?? [])];
-    sorted.sort((a, b) =>
-      sortDesc ? new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime() : new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-    );
-    return sorted;
-  }, [data, sortDesc]);
+  const rows = useMemo(() => [...(data ?? [])], [data]);
 
   const exportAll = async () => {
+    setExporting(true);
+    setExportNote(null);
     try {
-      const all = await api.readings({ device_id: deviceId || undefined, limit: 10000 });
+      const all = await api.readings({
+        device_id: debouncedDevice || undefined,
+        anomaly: anomalyOnly ? true : undefined,
+        prediction: debouncedPrediction || undefined,
+        limit: 10000,
+      });
       exportCsv(all);
+      setExportNote(`Exportado ${all.length} registros com os filtros atuais.`);
     } catch {
       exportCsv(rows);
+      setExportNote('Falha ao buscar tudo — exportado parcial (página atual).');
+    } finally {
+      setExporting(false);
     }
   };
+
+  const isLastPage = !data || data.length < PAGE_SIZE;
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-2xl font-extrabold tracking-tight text-transparent dark:from-white dark:to-slate-300">Histórico</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Medições registradas · Página {page + 1}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Medições registradas · Página {page + 1}{isLastPage && data ? ' · fim' : ''}</p>
         </div>
         <button
           type="button"
           onClick={exportAll}
-          className="inline-flex items-center gap-1.5 rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white shadow-md transition-all hover:bg-sky-700 hover:shadow-lg active:scale-[0.98] dark:bg-sky-500"
+          disabled={exporting}
+          className="inline-flex items-center gap-1.5 rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white shadow-md transition-all hover:bg-sky-700 hover:shadow-lg active:scale-[0.98] disabled:opacity-50 dark:bg-sky-500"
         >
-          ⬇ Exportar CSV
+          {exporting ? 'Exportando…' : '⬇ Exportar CSV'}
         </button>
       </div>
+      {exportNote && <p role="status" className="text-xs text-slate-500 dark:text-slate-400">{exportNote}</p>}
 
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <label className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
@@ -98,7 +127,7 @@ export function History() {
 
       {error ? (
         <ErrorState message={error} onRetry={load} />
-      ) : !data ? (
+      ) : loading && !data ? (
         <LoadingState message="Carregando histórico..." />
       ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -154,8 +183,8 @@ export function History() {
 
       <div className="flex items-center justify-between gap-2">
         <button type="button" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0} className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 disabled:opacity-40 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700">← Anterior</button>
-        <button type="button" onClick={() => setSortDesc((v) => !v)} className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900">↕ {sortDesc ? 'Recentes' : 'Antigas'}</button>
-        <button type="button" onClick={() => setPage((p) => p + 1)} disabled={!data || data.length < PAGE_SIZE} className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 disabled:opacity-40 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700">Próxima →</button>
+        <span className="text-xs text-slate-400">Ordenado por recentes (servidor)</span>
+        <button type="button" onClick={() => setPage((p) => p + 1)} disabled={isLastPage} title={isLastPage ? 'Última página' : 'Próxima página'} className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 disabled:opacity-40 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700">Próxima →</button>
       </div>
     </div>
   );

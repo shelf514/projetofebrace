@@ -5,10 +5,23 @@ import { usePolling } from '../hooks/usePolling';
 import { api, formatTimestamp } from '../services/api';
 import { sensorStatus } from '../services/format';
 
-export function DevicePage() {
-  const { data: devices, error, refresh } = usePolling(() => api.devices(), 10000);
-  const { data: latest } = usePolling(() => api.latestReading(), 10000);
+function DeviceSensors({ deviceId }: { deviceId: string }) {
+  const { data: latest } = usePolling(() => api.latestReading(deviceId), 15000);
   const status = sensorStatus(latest ? [latest] : []);
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {(['temperature', 'turbidity', 'tds'] as const).map((k) => (
+        <div key={k} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
+          <div><p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{k === 'temperature' ? 'Temperatura' : k === 'turbidity' ? 'Turbidez' : 'TDS'}</p><p className="text-xs text-slate-400">{k === 'temperature' ? 'DS18B20' : k === 'turbidity' ? 'Óptico' : 'Condutividade'}</p></div>
+          <SensorStatusBadge status={status[k]} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function DevicePage() {
+  const { data: devices, error, refresh } = usePolling(() => api.devices(), 30000);
 
   return (
     <div className="space-y-5">
@@ -40,14 +53,7 @@ export function DevicePage() {
               </div>
               <div className="mt-5">
                 <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Sensores</h4>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  {(['temperature','turbidity','tds'] as const).map(k => (
-                    <div key={k} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
-                      <div><p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{k==='temperature'?'Temperatura':k==='turbidity'?'Turbidez':'TDS'}</p><p className="text-xs text-slate-400">{k==='temperature'?'DS18B20':k==='turbidity'?'Óptico':'Condutividade'}</p></div>
-                      <SensorStatusBadge status={status[k]} />
-                    </div>
-                  ))}
-                </div>
+                <DeviceSensors deviceId={device.id} />
                 <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">Placas e ESP32 não entram na água — só sondas.</p>
               </div>
             </div>

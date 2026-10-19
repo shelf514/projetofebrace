@@ -16,9 +16,16 @@ export function useTheme() {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    const saved = localStorage.getItem('aquasense.theme') as Theme | null;
-    if (saved === 'light' || saved === 'dark') return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'dark'; // default escuro moderno
+    try {
+      const saved = localStorage.getItem('aquasense.theme') as Theme | null;
+      if (saved === 'light' || saved === 'dark') return saved;
+      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+    } catch {
+      /* armazenamento indisponível (modo privado/APK restrito) */
+    }
+    return 'dark'; // default escuro moderno
   });
 
   const apply = useCallback((t: Theme) => {
@@ -26,7 +33,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.style.colorScheme = t;
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', t === 'dark' ? '#0b1220' : '#0369a1');
-    localStorage.setItem('aquasense.theme', t);
+    try {
+      localStorage.setItem('aquasense.theme', t);
+    } catch {
+      /* ignore: modo privado */
+    }
   }, []);
 
   useEffect(() => {

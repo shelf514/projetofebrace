@@ -34,12 +34,14 @@ export function StatCard({ label, value, unit, tone = 'neutral', hint, info, sub
       <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
         {label}
         {info && (
-          <span
-            className="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-500 dark:bg-slate-700 dark:text-slate-300"
+          <button
+            type="button"
+            aria-label={`${label}: ${info}`}
             title={info}
+            className="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-slate-700 dark:text-slate-300"
           >
-            ⓘ
-          </span>
+            <span aria-hidden="true">ⓘ</span>
+          </button>
         )}
       </p>
       <p className={`mt-2 text-2xl font-bold tracking-tight ${valueTones[tone]}`}>

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AquarismoChat } from './AquarismoChat';
 
 export function FloatingChat() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Esc fecha + devolve foco ao FAB
+  // Esc fecha + devolve foco ao FAB; Tab fica preso no dialog (focus-trap simples)
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -15,31 +15,45 @@ export function FloatingChat() {
         setOpen(false);
         buttonRef.current?.focus();
       }
+      if (e.key === 'Tab' && panelRef.current) {
+        const focusables = panelRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [open ]);
 
-  // Foco no input ao abrir (o AquarismoChat usa id="chat-pergunta")
+  // Foco no input ao abrir via rAF (sem timeout arbitrário)
   useEffect(() => {
     if (!open) return;
-    const t = window.setTimeout(() => {
-      const el =
-        panelRef.current?.querySelector<HTMLInputElement>('#chat-pergunta') ??
-        inputRef.current;
+    const raf = requestAnimationFrame(() => {
+      const el = panelRef.current?.querySelector<HTMLInputElement>('#chat-pergunta');
       el?.focus({ preventScroll: true });
-    }, 60);
-    return () => window.clearTimeout(t);
+    });
+    return () => cancelAnimationFrame(raf);
   }, [open ]);
 
   return (
     <>
       {/* Painel: desktop = popover ancorado; mobile = bottom-sheet quase fullscreen */}
-      {open && (
+      {open && createPortal(
         <div
           ref={panelRef}
           id="chat-flutuante"
           role="dialog"
+          aria-modal="true"
           aria-label="Chat aquarismo"
           className="animate-fade-in-up fixed inset-x-3 bottom-24 top-16 z-50 flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:inset-x-auto sm:bottom-24 sm:right-5 sm:top-auto sm:h-[560px] sm:w-[390px] dark:border-slate-700 dark:bg-slate-900"
         >
@@ -64,7 +78,8 @@ export function FloatingChat() {
           <div className="flex min-h-0 flex-1 flex-col p-3">
             <AquarismoChat compact />
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       {/* FAB */}

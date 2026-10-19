@@ -41,7 +41,10 @@ export function useWebSocket<T>(path: string, enabled = true): WebSocketState<T>
   const [urlTick, setUrlTick] = useState(0);
 
   useEffect(() => {
-    if (!enabled || typeof WebSocket === 'undefined' || typeof window === 'undefined') return;
+    if (!enabled || typeof WebSocket === 'undefined' || typeof window === 'undefined') {
+      setState((prev) => (prev.error ? { ...prev, error: null } : prev));
+      return;
+    }
     const fullUrl = wsUrl(pathRef.current);
     if (!fullUrl) {
       setState((prev) => ({ ...prev, error: 'URL do backend invalida' }));
@@ -50,6 +53,7 @@ export function useWebSocket<T>(path: string, enabled = true): WebSocketState<T>
 
     let disposed = false;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    const lastMsgAtRef = { current: Date.now() };
 
     const connect = () => {
       if (disposed) return;
@@ -72,8 +76,14 @@ export function useWebSocket<T>(path: string, enabled = true): WebSocketState<T>
       };
 
       socket.onmessage = (event) => {
+        lastMsgAtRef.current = Date.now();
         try {
-          const message = JSON.parse(String(event.data)) as T;
+          const raw = String(event.data);
+          if (raw.includes('"pong"') || raw.includes('"ping"')) {
+            // heartbeat — socket vivo, sem repassar p/ UI
+            return;
+          }
+          const message = JSON.parse(raw) as T;
           setState((prev) => ({ ...prev, lastMessage: message }));
         } catch {
           setState((prev) => ({ ...prev, error: 'Mensagem inválida recebida' }));
@@ -84,10 +94,16 @@ export function useWebSocket<T>(path: string, enabled = true): WebSocketState<T>
         setState((prev) => ({ ...prev, error: 'Erro na conexão WebSocket' }));
       };
 
-      socket.onclose = () => {
+      socket.onclose = (event) => {
         if (disposed) return;
         setState((prev) => ({ ...prev, connected: false }));
-        retryTimer = setTimeout(connect, retryMsRef.current);
+        if (event.code === 4403 || event.code === 1013) {
+          setState((prev) => ({ ...prev, error: event.code === 4403 ? 'Origem WebSocket bloqueada' : 'Servidor cheio, tentando de novo' }));
+        }
+        retryTimer = setTimeout(() => {
+          if (!disposed && (typeof document === 'undefined' || !document.hidden)) connect();
+          else if (!disposed) retryTimer = setTimeout(connect, retryMsRef.current);
+        }, retryMsRef.current);
         retryMsRef.current = Math.min(retryMsRef.current * 2, MAX_RETRY_MS);
       };
     };
@@ -111,14 +127,19 @@ export function useWebSocket<T>(path: string, enabled = true): WebSocketState<T>
     window.addEventListener('storage', handleStorage);
     window.addEventListener('online', handleOnline);
 
-    // Heartbeat: fecha socket morto para forcar reconnect via onclose
+    // Heartbeat: ping a cada 30s; se 45s sem mensagem fecha socket morto (onclose reconecta).
+    // Pausa em background para economizar bateria.
     const heartbeat = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       const s = socketRef.current;
       if (s && s.readyState === WebSocket.OPEN) {
         try {
           s.send(JSON.stringify({ type: 'ping' }));
         } catch {
           /* onclose cuidara do reconnect */
+        }
+        if (Date.now() - lastMsgAtRef.current > 45000) {
+          try { s.close(4000, 'pong timeout'); } catch { /* ignore */ }
         }
       }
     }, 30000);

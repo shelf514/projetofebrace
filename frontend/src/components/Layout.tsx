@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { FloatingChat } from './FloatingChat';
 import { useTheme } from './ThemeProvider';
+
+const FloatingChat = lazy(() => import('./FloatingChat').then((m) => ({ default: m.FloatingChat })));
+const ConfigDialog = lazy(() => import('./ConfigDialog').then((m) => ({ default: m.ConfigDialog })));
 
 const links = [
   { to: '/', label: 'Início', end: true },
@@ -14,6 +16,20 @@ const links = [
 export function Layout() {
   const { theme, toggle } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [configOpen, setConfigOpen] = useState(false);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
 
   return (
     <div className="min-h-full bg-[var(--bg)] transition-colors duration-300">
@@ -53,6 +69,15 @@ export function Layout() {
           <div className="ml-auto flex items-center gap-2">
             <button
               type="button"
+              onClick={() => setConfigOpen(true)}
+              aria-label="Configurar endereço do backend"
+              title="Configurar backend (IP da rede)"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/10 text-sm backdrop-blur hover:bg-white/20 transition-colors"
+            >
+              <span aria-hidden="true">⚙️</span>
+            </button>
+            <button
+              type="button"
               onClick={toggle}
               aria-label="Alternar tema"
               aria-pressed={theme === 'dark'}
@@ -65,7 +90,7 @@ export function Layout() {
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-white lg:hidden"
-              aria-label="Menu"
+              aria-label={mobileOpen ? 'Fechar menu' : 'Abrir menu'}
               aria-expanded={mobileOpen}
               aria-controls="menu-mobile"
             >
@@ -108,7 +133,10 @@ export function Layout() {
         </div>
       </footer>
 
-      <FloatingChat />
+      <Suspense fallback={null}>
+        <FloatingChat />
+        {configOpen && <ConfigDialog onClose={() => setConfigOpen(false)} />}
+      </Suspense>
     </div>
   );
 }

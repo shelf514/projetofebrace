@@ -78,7 +78,7 @@ export function AIPage() {
         <div>
           <h2 className="bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-2xl font-extrabold tracking-tight text-transparent dark:from-white dark:to-slate-300">IA</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Modelo v{status.version ?? '?'} · treinado em {status.trained_at ? new Date(status.trained_at).toLocaleString('pt-BR') : '—'} · Aquarismo 15 espécies
+            Modelo v{status.version ?? '?'} · treinado em {status.trained_at ? new Date(status.trained_at).toLocaleString('pt-BR') : '—'} · Aquarismo 30 espécies
           </p>
         </div>
         <button type="button" onClick={refresh} className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-md transition-all hover:bg-slate-800 hover:shadow-lg active:scale-[0.98] dark:bg-white dark:text-slate-900">↻ Atualizar</button>

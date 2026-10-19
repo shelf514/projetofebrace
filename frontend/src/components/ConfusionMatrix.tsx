@@ -2,8 +2,11 @@ import type { ConfusionMatrix } from '../types';
 import { useTheme } from './ThemeProvider';
 
 export function ConfusionMatrixView({ cm }: { cm: ConfusionMatrix }) {
-  const max = Math.max(...cm.matrix.flat().map(Number), 1);
   const { theme } = useTheme();
+  if (!cm.labels?.length || !cm.matrix?.length || cm.labels.length !== cm.matrix.length) {
+    return <p className="text-xs text-slate-400">Matriz de confusão indisponível.</p>;
+  }
+  const max = Math.max(...cm.matrix.flat().map(Number), 1);
   const isDark = theme === 'dark';
   return (
     <div className="overflow-x-auto">

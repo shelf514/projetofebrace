@@ -21,12 +21,14 @@ interface SensorChartProps {
 
 const MAX_POINTS = 300;
 
-/** Downsample uniforme: 5000pts -> 300 (evita ~15k nos SVG e jank a cada poll). */
+/** Downsample uniforme preservando o último ponto (evita gráfico 1 poll atrasado). */
 export function downsample<T>(rows: T[], max = MAX_POINTS): T[] {
   if (rows.length <= max) return rows;
   const step = rows.length / max;
   const out: T[] = [];
   for (let i = 0; i < max; i++) out.push(rows[Math.floor(i * step)]);
+  const last = rows[rows.length - 1];
+  if (out[out.length - 1] !== last) out[out.length - 1] = last;
   return out;
 }
 
@@ -60,7 +62,12 @@ export function SensorChart({ data, color, unit, label, reference }: SensorChart
           ━ {reference.label} (referência)
         </p>
       )}
-      <div className="h-56">
+      {sortedData.length === 0 ? (
+        <p role="status" className="rounded-xl border border-dashed border-slate-300 py-10 text-center text-xs text-slate-400 dark:border-slate-700">
+          Sem dados no período
+        </p>
+      ) : (
+      <div className="h-56" role="img" aria-label={`${label} em ${unit}, ${sortedData.length} pontos`}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={sortedData} margin={{ top: 5, right: 10, bottom: 0, left: -10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#1e293b' : '#e2e8f0'} />
@@ -107,6 +114,7 @@ export function SensorChart({ data, color, unit, label, reference }: SensorChart
           </LineChart>
         </ResponsiveContainer>
       </div>
+      )}
     </div>
   );
 }

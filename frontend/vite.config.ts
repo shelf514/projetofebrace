@@ -12,14 +12,15 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     build: {
       target: 'es2020',
-      sourcemap: false,
+      sourcemap: false, // APK: sem sourcemap (debug prod via logs; ativar Sentry se precisar)
       chunkSizeWarningLimit: 600,
       rollupOptions: {
         output: {
           manualChunks: (id: string) => {
             if (id.includes('node_modules')) {
-              if (id.includes('recharts')) return 'charts';
-              if (id.includes('react-router') || id.includes('/react/') || id.includes('/react-dom/'))
+              if (id.includes('node_modules/recharts')) return 'charts';
+              if (id.includes('node_modules/react-router')) return 'router';
+              if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/') || id.includes('node_modules/scheduler'))
                 return 'vendor';
             }
             return undefined;
@@ -29,6 +30,9 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: true,
+      fs: {
+        deny: ['.env*', '**/*.key', '**/*.pem'],
+      },
       proxy: {
         '/api': {
           target,

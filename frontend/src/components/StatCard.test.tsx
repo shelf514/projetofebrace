@@ -22,7 +22,7 @@ describe('StatCard', () => {
 
   it('renderiza icone de informacao com tooltip quando info e fornecida', () => {
     render(<StatCard label="Turbidez" value="12.4" unit="NTU" info="Padrão: até 5 NTU" />);
-    const info = screen.getByText('ⓘ');
+    const info = screen.getByRole('button', { name: /turbidez: padrão: até 5 ntu/i });
     expect(info).toBeInTheDocument();
     expect(info).toHaveAttribute('title', 'Padrão: até 5 NTU');
   });
