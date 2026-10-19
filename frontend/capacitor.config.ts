@@ -5,8 +5,10 @@ const config: CapacitorConfig = {
   appName: 'AquaSense AI',
   webDir: 'dist',
   server: {
+    // cleartext SÓ para rede local/debug (IP LAN). Em release/Play remover.
     cleartext: true,
     androidScheme: 'https',
+    hostname: 'aquasense.local',
   },
   android: {
     allowMixedContent: true,
